@@ -35,9 +35,11 @@ Her sayfa klasör + `index.html` düzeninde (`/hakkinda/index.html` gibi) — bu
 
 **Neden değişti:** Prototiplerde her iki site de görselleri sayfanın `<script>`/`<img>` içine base64 olarak gömüyordu (fotoğraf sitesinde tek satır ~7,8 MB'tı). Şimdi görseller gerçek `.jpg` dosyaları; tarayıcı onları ayrı indirir, önbelleğe alır ve sayfa ilk yüklemede çok daha hafif olur.
 
+Tüm CSS/görsel/link yolları **göreli (relative)** yazıldı (`/css/style.css` değil `css/style.css`) — hem bir web sunucusunda köke deploy edildiğinde hem de dosyaya çift tıklayıp `file://` ile doğrudan açıldığında aynı şekilde çalışsın diye. Fotoğraf galerisi de artık `fetch('/photos.json')` yerine veriyi doğrudan `index.html` içine gömülü okuyor — böylece `file://` altında CORS hatası vermiyor.
+
 ## Yerel önizleme
 
-Tarayıcıda `file://` ile açarsan fotoğraf sitesindeki `fetch('/photos.json')` CORS nedeniyle çalışmaz. Basit bir yerel sunucu yeterli:
+Artık ekstra bir şey gerekmiyor: `main-site/index.html` veya `photo-site/index.html` dosyasına çift tıklayıp doğrudan tarayıcıda açabilirsiniz, hepsi çalışır. Sunucu üzerinden test etmek isterseniz (opsiyonel):
 
 ```bash
 cd guntaysimsek-web/main-site && python3 -m http.server 8000

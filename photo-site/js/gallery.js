@@ -1,6 +1,6 @@
 async function loadPhotos(){
-  const res = await fetch('/photos.json');
-  return res.json();
+  const el = document.getElementById('photos-data');
+  return JSON.parse(el.textContent);
 }
 
 function init(ITEMS){
