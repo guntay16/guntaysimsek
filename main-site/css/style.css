@@ -517,3 +517,11 @@ footer{
   color:var(--charcoal);
   letter-spacing:0.05em;
 }
+.legal-links{
+  display:flex;
+  justify-content:center;
+  gap:18px;
+  margin-bottom:10px;
+}
+.legal-links a{color:var(--charcoal);text-decoration:none;border-bottom:1px solid transparent;}
+.legal-links a:hover{color:var(--crimson);border-bottom-color:var(--crimson);}
