@@ -83,6 +83,17 @@ function init(ITEMS){
     });
   });
 
+  document.querySelectorAll('.series-tile').forEach(tile=>{
+    tile.addEventListener('click', ()=>{
+      const caption = tile.dataset.caption;
+      activeCat = 'Ay ve Uçak';
+      renderFilters();
+      renderGrid();
+      const idx = visibleItems.findIndex(i=>i.caption===caption);
+      openLightbox(idx===-1 ? 0 : idx);
+    });
+  });
+
   renderFilters();
   renderGrid();
 }
