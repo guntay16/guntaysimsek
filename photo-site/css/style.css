@@ -151,7 +151,7 @@ header{
   flex-direction:column;
   gap:44px;
 }
-.press-essay{max-width:720px;}
+.press-essay{max-width:900px;margin-left:auto;margin-right:auto;}
 .press-essay-author{
   font-family:'Fraunces', serif;
   font-weight:500;
@@ -324,7 +324,7 @@ header{
   cursor:pointer;
   background:var(--bg-raise);
 }
-.tile.tile-wide{width:100%;}
+.tile.tile-wide{width:66.666%;margin:0 auto;}
 .tile img{
   width:100%;height:auto;display:block;
   transition:transform .5s ease, filter .5s ease;

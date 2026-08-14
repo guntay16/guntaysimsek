@@ -34,8 +34,7 @@ function init(ITEMS){
     const w = window.innerWidth;
     if(w < 640) return 1;
     if(w < 960) return 2;
-    if(w < 1280) return 3;
-    return 4;
+    return 3;
   }
 
   function renderMasonry(container, group, indexOf){
