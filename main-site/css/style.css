@@ -242,6 +242,34 @@ section{padding:56px 0;}
   .col-item{grid-template-columns:1fr;gap:6px;}
 }
 
+/* Paylaş */
+.share-row{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-top:12px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.68rem;
+  letter-spacing:0.04em;
+  text-transform:uppercase;
+}
+.share-row .share-label{color:var(--charcoal);}
+.share-row a,
+.share-row button{
+  background:none;
+  border:none;
+  padding:0;
+  font:inherit;
+  letter-spacing:inherit;
+  color:var(--charcoal);
+  text-decoration:none;
+  cursor:pointer;
+  border-bottom:1px solid transparent;
+}
+.share-row a:hover,
+.share-row button:hover{color:var(--crimson);border-bottom-color:var(--crimson);}
+.share-row button.copied{color:var(--crimson);border-bottom-color:var(--crimson);}
+
 /* Televizyon */
 .tv-intro{
   font-family:'IBM Plex Mono', monospace;
@@ -249,29 +277,54 @@ section{padding:56px 0;}
   color:var(--charcoal);
   margin:-14px 0 26px;
 }
+.tv-note{
+  margin-top:26px;
+  padding-top:22px;
+  border-top:1px solid var(--line);
+}
+.tv-note-title{
+  font-family:'Fraunces', serif;
+  font-weight:600;
+  font-size:1.05rem;
+  margin:0 0 8px;
+}
+.tv-note-desc{
+  font-size:0.92rem;
+  line-height:1.6;
+  color:var(--charcoal);
+  margin:0 0 10px;
+}
+
 .tv-list{list-style:none;margin:0;padding:0;}
 .tv-ep{
+  padding:20px 0;
+  border-bottom:1px solid var(--line);
+}
+.tv-ep:first-child{padding-top:0;}
+.tv-ep-link{
   display:grid;
   grid-template-columns:140px 1fr;
   gap:18px;
-  padding:20px 0;
-  border-bottom:1px solid var(--line);
   text-decoration:none;
   color:inherit;
 }
-.tv-ep:first-child{padding-top:0;}
 .tv-ep-thumb{
   width:140px;
   aspect-ratio:16/9;
   overflow:hidden;
   background:var(--charcoal);
   border:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--paper-alt);
 }
-.tv-ep-thumb img{
-  width:100%;height:100%;object-fit:cover;display:block;
-  transition:transform .35s ease;
+.tv-ep-thumb svg{
+  width:26px;
+  height:26px;
+  transition:color .25s ease, transform .35s ease;
 }
-.tv-ep:hover .tv-ep-thumb img{transform:scale(1.05);}
+.tv-ep-link:hover .tv-ep-thumb svg{color:var(--crimson);transform:scale(1.1);}
 .tv-ep-date{
   font-family:'IBM Plex Mono', monospace;
   font-size:0.72rem;
@@ -285,16 +338,18 @@ section{padding:56px 0;}
   margin:4px 0 6px;
   line-height:1.25;
 }
-.tv-ep:hover .tv-ep-title{color:var(--crimson);}
+.tv-ep-link:hover .tv-ep-title{color:var(--crimson);}
 .tv-ep-desc{
   font-size:0.9rem;
   color:var(--charcoal);
   line-height:1.5;
   margin:0;
 }
+.tv-ep .share-row{margin-left:158px;}
 @media (max-width:560px){
-  .tv-ep{grid-template-columns:1fr;}
+  .tv-ep-link{grid-template-columns:1fr;}
   .tv-ep-thumb{width:100%;}
+  .tv-ep .share-row{margin-left:0;margin-top:10px;}
 }
 
 /* Fotoğraf */
@@ -441,7 +496,13 @@ section{padding:56px 0;}
   font-family:'IBM Plex Mono', monospace;
   font-size:0.85rem;
 }
-.contact-links a{text-decoration:none;border-bottom:1px solid var(--crimson);}
+.contact-links .contact-label{
+  color:var(--crimson);
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  font-size:0.72rem;
+  margin-right:6px;
+}
 .contact-lede{
   max-width:520px;
   line-height:1.6;

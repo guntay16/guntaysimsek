@@ -160,12 +160,10 @@ footer{
   flex-wrap:wrap;
   margin-bottom:14px;
 }
-.footer-links a{
+.footer-links{font-size:0.72rem;}
+.footer-links .contact-label{
   color:var(--accent);
-  text-decoration:none;
-  border-bottom:1px solid var(--accent);
-  padding-bottom:2px;
   text-transform:uppercase;
   letter-spacing:0.06em;
-  font-size:0.72rem;
+  margin-right:6px;
 }
