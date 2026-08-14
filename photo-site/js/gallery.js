@@ -4,7 +4,8 @@ async function loadPhotos(){
 }
 
 function init(ITEMS){
-  const categories = ["Tümü", ...Array.from(new Set(ITEMS.map(i=>i.cat)))];
+  const CATEGORY_ORDER = ["Ay ve Uçak","Havacılık","Hava Gösterisi","Portre","Ağaçlar","Seyahat"];
+  const categories = ["Tümü", ...CATEGORY_ORDER.filter(c=>ITEMS.some(i=>i.cat===c))];
   const filtersEl = document.getElementById('filters');
   const gridEl = document.getElementById('grid');
   let activeCat = "Tümü";
@@ -20,18 +21,49 @@ function init(ITEMS){
     });
   }
 
+  function buildTile(item, idx){
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.innerHTML = `<img src="${item.thumb}" alt="${item.caption}" loading="lazy">
+      <div class="tile-cap"><span class="tile-cat">${item.cat}</span>${item.caption}</div>`;
+    tile.onclick = ()=> openLightbox(idx);
+    return tile;
+  }
+
   let visibleItems = [];
   function renderGrid(){
     gridEl.innerHTML = "";
-    visibleItems = activeCat === "Tümü" ? ITEMS : ITEMS.filter(i=>i.cat===activeCat);
-    visibleItems.forEach((item, idx)=>{
-      const tile = document.createElement('div');
-      tile.className = 'tile';
-      tile.innerHTML = `<img src="${item.thumb}" alt="${item.caption}" loading="lazy">
-        <div class="tile-cap"><span class="tile-cat">${item.cat}</span>${item.caption}</div>`;
-      tile.onclick = ()=> openLightbox(idx);
-      gridEl.appendChild(tile);
-    });
+    if(activeCat === "Tümü"){
+      const tumuCategories = CATEGORY_ORDER.filter(cat=>cat!=='Ay ve Uçak');
+      visibleItems = tumuCategories.flatMap(cat=>ITEMS.filter(i=>i.cat===cat));
+      let runningIdx = 0;
+      tumuCategories.forEach(cat=>{
+        const group = ITEMS.filter(i=>i.cat===cat);
+        if(group.length===0) return;
+        const section = document.createElement('div');
+        section.className = 'cat-section';
+        const heading = document.createElement('h3');
+        heading.className = 'cat-heading';
+        heading.textContent = cat;
+        section.appendChild(heading);
+        const gridDiv = document.createElement('div');
+        gridDiv.className = 'grid';
+        group.forEach(item=>{
+          gridDiv.appendChild(buildTile(item, runningIdx));
+          runningIdx++;
+        });
+        section.appendChild(gridDiv);
+        gridEl.appendChild(section);
+      });
+    } else {
+      visibleItems = ITEMS.filter(i=>i.cat===activeCat);
+      const gridDiv = document.createElement('div');
+      gridDiv.className = 'grid';
+      visibleItems.forEach((item, idx)=>{
+        gridDiv.appendChild(buildTile(item, idx));
+      });
+      gridEl.appendChild(gridDiv);
+    }
   }
 
   const lightbox = document.getElementById('lightbox');
@@ -83,7 +115,7 @@ function init(ITEMS){
     });
   });
 
-  document.querySelectorAll('.series-tile').forEach(tile=>{
+  document.querySelectorAll('.series-tile, .series-hero').forEach(tile=>{
     tile.addEventListener('click', ()=>{
       const caption = tile.dataset.caption;
       activeCat = 'Ay ve Uçak';
