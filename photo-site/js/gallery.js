@@ -42,7 +42,41 @@ function init(ITEMS){
     const normal = group.filter(item=>!item.wide);
 
     wide.forEach(item=>{
-      container.appendChild(buildTile(item, indexOf(item)));
+      const isPanorama = (item.r || 0.75) < 0.4;
+      if(isPanorama){
+        const tile = buildTile(item, indexOf(item));
+        tile.classList.add('tile-panorama');
+        container.appendChild(tile);
+        return;
+      }
+      const mainR = item.r || 0.75;
+      const mainFlex = mainR > 1 ? 1.2 : 2;
+
+      const row = document.createElement('div');
+      row.className = 'wide-row';
+      const main = document.createElement('div');
+      main.className = 'wide-row-main';
+      main.style.flex = mainFlex + ' 1 0';
+      main.appendChild(buildTile(item, indexOf(item)));
+      row.appendChild(main);
+
+      const target = mainFlex * mainR;
+      let sum = 0;
+      const fillers = [];
+      while(normal.length && fillers.length < 4){
+        const nextR = normal[0].r || 0.75;
+        const newSum = sum + nextR;
+        if(fillers.length > 0 && Math.abs(newSum - target) >= Math.abs(sum - target)) break;
+        fillers.push(normal.shift());
+        sum = newSum;
+      }
+      if(fillers.length){
+        const fill = document.createElement('div');
+        fill.className = 'wide-row-fill';
+        fillers.forEach(f => fill.appendChild(buildTile(f, indexOf(f))));
+        row.appendChild(fill);
+      }
+      container.appendChild(row);
     });
 
     if(normal.length===0) return;
