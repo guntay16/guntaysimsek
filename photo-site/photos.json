@@ -42,7 +42,7 @@
     "full": "images/full/havacilik--kapadokya-balon-manzarasi-iii.jpg"
   },
   {
-    "cat": "Havacılık",
+    "cat": "Havalimanları",
     "caption": "Atatürk Havalimanı, 2012 — Gün Batımı",
     "thumb": "images/thumbs/havacilik--ataturk-havalimani-2012-gun-batimi.jpg",
     "full": "images/full/havacilik--ataturk-havalimani-2012-gun-batimi.jpg"
@@ -54,7 +54,7 @@
     "full": "images/full/havacilik--istanbul-bogazi-havadan.jpg"
   },
   {
-    "cat": "Havacılık",
+    "cat": "Havalimanları",
     "caption": "Atatürk Havalimanı, Nisan 2012",
     "thumb": "images/thumbs/havacilik--ataturk-havalimani-nisan-2012.jpg",
     "full": "images/full/havacilik--ataturk-havalimani-nisan-2012.jpg"
@@ -66,25 +66,25 @@
     "full": "images/full/havacilik--bulutlar.jpg"
   },
   {
-    "cat": "Havacılık",
+    "cat": "Havalimanları",
     "caption": "İstanbul Havalimanı, Yaklaşma Hattı",
     "thumb": "images/thumbs/havacilik--istanbul-havalimani-yaklasma-hatti.jpg",
     "full": "images/full/havacilik--istanbul-havalimani-yaklasma-hatti.jpg"
   },
   {
-    "cat": "Havacılık",
+    "cat": "Seyahat",
     "caption": "Kazakistan, 2015",
     "thumb": "images/thumbs/havacilik--kazakistan-2015.jpg",
     "full": "images/full/havacilik--kazakistan-2015.jpg"
   },
   {
-    "cat": "Havacılık",
+    "cat": "Havalimanları",
     "caption": "Atatürk Havalimanı, 2019",
     "thumb": "images/thumbs/havacilik--ataturk-havalimani-2019.jpg",
     "full": "images/full/havacilik--ataturk-havalimani-2019.jpg"
   },
   {
-    "cat": "Havacılık",
+    "cat": "Havalimanları",
     "caption": "Singapur Changi Airport",
     "thumb": "images/thumbs/havacilik--singapur-changi-airport.jpg",
     "full": "images/full/havacilik--singapur-changi-airport.jpg"
@@ -168,37 +168,37 @@
     "full": "images/full/agaclar--sisli-agaclar.jpg"
   },
   {
-    "cat": "Seyahat",
+    "cat": "Hayvanlar",
     "caption": "Masai Mara",
     "thumb": "images/thumbs/seyahat--masai-mara.jpg",
     "full": "images/full/seyahat--masai-mara.jpg"
   },
   {
-    "cat": "Seyahat",
+    "cat": "Şehirler",
     "caption": "Astana, 2023",
     "thumb": "images/thumbs/seyahat--astana-2023.jpg",
     "full": "images/full/seyahat--astana-2023.jpg"
   },
   {
-    "cat": "Seyahat",
+    "cat": "Hayvanlar",
     "caption": "Güney Afrika, Mart 2012 — Boulders Beach",
     "thumb": "images/thumbs/seyahat--guney-afrika-mart-2012-boulders-beach.jpg",
     "full": "images/full/seyahat--guney-afrika-mart-2012-boulders-beach.jpg"
   },
   {
-    "cat": "Seyahat",
+    "cat": "Hayvanlar",
     "caption": "Güney Afrika, Mart 2012 — Ümit Burnu Yolu",
     "thumb": "images/thumbs/seyahat--guney-afrika-mart-2012-umit-burnu-yolu.jpg",
     "full": "images/full/seyahat--guney-afrika-mart-2012-umit-burnu-yolu.jpg"
   },
   {
-    "cat": "Seyahat",
+    "cat": "Şehirler",
     "caption": "Atina, Şubat 2009",
     "thumb": "images/thumbs/seyahat--atina-subat-2009.jpg",
     "full": "images/full/seyahat--atina-subat-2009.jpg"
   },
   {
-    "cat": "Seyahat",
+    "cat": "Şehirler",
     "caption": "Monaco, 20 Nisan 2006",
     "thumb": "images/thumbs/seyahat--monaco-20-nisan-2006.jpg",
     "full": "images/full/seyahat--monaco-20-nisan-2006.jpg"
@@ -210,31 +210,19 @@
     "full": "images/full/seyahat--azerbaycan.jpg"
   },
   {
-    "cat": "Seyahat",
+    "cat": "Şehirler",
     "caption": "Kazablanka, 2012",
     "thumb": "images/thumbs/seyahat--kazablanka-2012.jpg",
     "full": "images/full/seyahat--kazablanka-2012.jpg"
   },
   {
-    "cat": "Seyahat",
+    "cat": "Şehirler",
     "caption": "Amsterdam, 2019",
     "thumb": "images/thumbs/seyahat--amsterdam-2019.jpg",
     "full": "images/full/seyahat--amsterdam-2019.jpg"
   },
   {
-    "cat": "Seyahat",
-    "caption": "Monaco, 2006",
-    "thumb": "images/thumbs/seyahat--monaco-2006.jpg",
-    "full": "images/full/seyahat--monaco-2006.jpg"
-  },
-  {
-    "cat": "Seyahat",
-    "caption": "Atina, 2009",
-    "thumb": "images/thumbs/seyahat--atina-2009.jpg",
-    "full": "images/full/seyahat--atina-2009.jpg"
-  },
-  {
-    "cat": "Seyahat",
+    "cat": "Şehirler",
     "caption": "Las Vegas, 2022",
     "thumb": "images/thumbs/seyahat--las-vegas-2022.jpg",
     "full": "images/full/seyahat--las-vegas-2022.jpg"
@@ -258,7 +246,7 @@
     "full": "images/full/seyahat--cape-town.jpg"
   },
   {
-    "cat": "Seyahat",
+    "cat": "Şehirler",
     "caption": "Dublin",
     "thumb": "images/thumbs/seyahat--dublin.jpg",
     "full": "images/full/seyahat--dublin.jpg"
@@ -288,7 +276,7 @@
     "full": "images/full/seyahat--dogu-turkistan-2011.jpg"
   },
   {
-    "cat": "Havacılık",
+    "cat": "Şehirler",
     "caption": "İstanbul, Üç Köprü, 2023",
     "thumb": "images/thumbs/havacilik--istanbul-uc-kopru-2023.jpg",
     "full": "images/full/havacilik--istanbul-uc-kopru-2023.jpg"
@@ -306,7 +294,7 @@
     "full": "images/full/portre--tayland.jpg"
   },
   {
-    "cat": "Havacılık",
+    "cat": "Havalimanları",
     "caption": "İstanbul Havalimanı, Uçuşa Hazırlık, Gece",
     "thumb": "images/thumbs/havacilik--istanbul-havalimani-ucusa-hazirlik-gece.jpg",
     "full": "images/full/havacilik--istanbul-havalimani-ucusa-hazirlik-gece.jpg"
@@ -324,7 +312,7 @@
     "full": "images/full/havacilik--bulutlar-arasinda-2.jpg"
   },
   {
-    "cat": "Havacılık",
+    "cat": "Havalimanları",
     "caption": "İstanbul Havalimanı, Yağmurlu Gün",
     "thumb": "images/thumbs/havacilik--istanbul-havalimani-yagmurlu-gun.jpg",
     "full": "images/full/havacilik--istanbul-havalimani-yagmurlu-gun.jpg"
@@ -354,31 +342,31 @@
     "full": "images/full/agaclar--yosunlu-agac-govdesi.jpg"
   },
   {
-    "cat": "Seyahat",
+    "cat": "Şehirler",
     "caption": "Bombay, 2011",
     "thumb": "images/thumbs/seyahat--bombay-2011.jpg",
     "full": "images/full/seyahat--bombay-2011.jpg"
   },
   {
-    "cat": "Seyahat",
+    "cat": "Hayvanlar",
     "caption": "Güney Afrika, Eland",
     "thumb": "images/thumbs/seyahat--guney-afrika-eland.jpg",
     "full": "images/full/seyahat--guney-afrika-eland.jpg"
   },
   {
-    "cat": "Seyahat",
+    "cat": "Hayvanlar",
     "caption": "Mombasa, Kenya",
     "thumb": "images/thumbs/seyahat--mombasa-kenya.jpg",
     "full": "images/full/seyahat--mombasa-kenya.jpg"
   },
   {
-    "cat": "Seyahat",
+    "cat": "Hayvanlar",
     "caption": "Güney Afrika, Devekuşu",
     "thumb": "images/thumbs/seyahat--guney-afrika-devekusu.jpg",
     "full": "images/full/seyahat--guney-afrika-devekusu.jpg"
   },
   {
-    "cat": "Portre",
+    "cat": "Hayvanlar",
     "caption": "Ulan Batur, Kartal",
     "thumb": "images/thumbs/portre--ulan-batur-kartal.jpg",
     "full": "images/full/portre--ulan-batur-kartal.jpg"
