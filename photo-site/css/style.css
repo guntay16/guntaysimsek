@@ -123,6 +123,31 @@ header{
   text-align:center;
 }
 .lightbox-cap .cat{color:var(--accent);text-transform:uppercase;letter-spacing:0.08em;font-size:0.66rem;display:block;margin-bottom:4px;}
+.lightbox .share-row{
+  display:flex;
+  justify-content:center;
+  gap:14px;
+  margin-top:14px;
+  font-size:0.66rem;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+}
+.lightbox .share-row .share-label{color:var(--ink-dim);}
+.lightbox .share-row a,
+.lightbox .share-row button{
+  background:none;
+  border:none;
+  padding:0;
+  font:inherit;
+  letter-spacing:inherit;
+  color:var(--ink-dim);
+  text-decoration:none;
+  cursor:pointer;
+  border-bottom:1px solid transparent;
+}
+.lightbox .share-row a:hover,
+.lightbox .share-row button:hover{color:var(--accent);border-bottom-color:var(--accent);}
+.lightbox .share-row button.copied{color:var(--accent);border-bottom-color:var(--accent);}
 .lb-close{
   position:absolute;top:22px;right:26px;
   background:none;border:none;color:var(--ink);

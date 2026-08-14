@@ -38,6 +38,9 @@ function init(ITEMS){
   const lbImg = document.getElementById('lbImg');
   const lbCat = document.getElementById('lbCat');
   const lbCaption = document.getElementById('lbCaption');
+  const lbShareX = document.getElementById('lbShareX');
+  const lbShareWa = document.getElementById('lbShareWa');
+  const lbCopyLink = document.getElementById('lbCopyLink');
   let currentIdx = 0;
 
   function openLightbox(idx){
@@ -50,6 +53,12 @@ function init(ITEMS){
     lbImg.src = item.full;
     lbCat.textContent = item.cat;
     lbCaption.textContent = item.caption;
+
+    const shareUrl = location.origin + location.pathname;
+    const shareText = item.caption + ' — Güntay Şimşek Fotoğraf';
+    lbShareX.href = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText) + '&url=' + encodeURIComponent(shareUrl);
+    lbShareWa.href = 'https://wa.me/?text=' + encodeURIComponent(shareText + ' ' + shareUrl);
+    lbCopyLink.dataset.url = shareUrl;
   }
   document.getElementById('lbClose').onclick = ()=> lightbox.classList.remove('open');
   document.getElementById('lbPrev').onclick = ()=>{ currentIdx = (currentIdx-1+visibleItems.length)%visibleItems.length; showCurrent(); };
@@ -60,6 +69,18 @@ function init(ITEMS){
     if(e.key==='Escape') lightbox.classList.remove('open');
     if(e.key==='ArrowLeft') document.getElementById('lbPrev').click();
     if(e.key==='ArrowRight') document.getElementById('lbNext').click();
+  });
+
+  lbCopyLink.addEventListener('click', ()=>{
+    navigator.clipboard.writeText(lbCopyLink.dataset.url).then(()=>{
+      const original = lbCopyLink.textContent;
+      lbCopyLink.textContent = 'Kopyalandı';
+      lbCopyLink.classList.add('copied');
+      setTimeout(()=>{
+        lbCopyLink.textContent = original;
+        lbCopyLink.classList.remove('copied');
+      }, 1500);
+    });
   });
 
   renderFilters();
