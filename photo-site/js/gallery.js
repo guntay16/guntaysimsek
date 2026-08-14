@@ -30,13 +30,45 @@ function init(ITEMS){
     return tile;
   }
 
+  function columnCount(){
+    const w = window.innerWidth;
+    if(w < 640) return 1;
+    if(w < 960) return 2;
+    if(w < 1280) return 3;
+    return 4;
+  }
+
+  function renderMasonry(container, group, indexOf){
+    const wide = group.filter(item=>item.wide);
+    const normal = group.filter(item=>!item.wide);
+
+    wide.forEach(item=>{
+      container.appendChild(buildTile(item, indexOf(item)));
+    });
+
+    if(normal.length===0) return;
+    const gridDiv = document.createElement('div');
+    gridDiv.className = 'grid';
+    const cols = [];
+    const n = Math.min(columnCount(), normal.length);
+    for(let i=0;i<n;i++){
+      const col = document.createElement('div');
+      col.className = 'grid-col';
+      cols.push(col);
+      gridDiv.appendChild(col);
+    }
+    normal.forEach((item, i)=>{
+      cols[i % n].appendChild(buildTile(item, indexOf(item)));
+    });
+    container.appendChild(gridDiv);
+  }
+
   let visibleItems = [];
   function renderGrid(){
     gridEl.innerHTML = "";
     if(activeCat === "Tümü"){
       const tumuCategories = CATEGORY_ORDER.filter(cat=>cat!=='Ay ve Uçak');
       visibleItems = tumuCategories.flatMap(cat=>ITEMS.filter(i=>i.cat===cat));
-      let runningIdx = 0;
       tumuCategories.forEach(cat=>{
         const group = ITEMS.filter(i=>i.cat===cat);
         if(group.length===0) return;
@@ -46,23 +78,12 @@ function init(ITEMS){
         heading.className = 'cat-heading';
         heading.textContent = cat;
         section.appendChild(heading);
-        const gridDiv = document.createElement('div');
-        gridDiv.className = 'grid';
-        group.forEach(item=>{
-          gridDiv.appendChild(buildTile(item, runningIdx));
-          runningIdx++;
-        });
-        section.appendChild(gridDiv);
+        renderMasonry(section, group, item=>visibleItems.indexOf(item));
         gridEl.appendChild(section);
       });
     } else {
       visibleItems = ITEMS.filter(i=>i.cat===activeCat);
-      const gridDiv = document.createElement('div');
-      gridDiv.className = 'grid';
-      visibleItems.forEach((item, idx)=>{
-        gridDiv.appendChild(buildTile(item, idx));
-      });
-      gridEl.appendChild(gridDiv);
+      renderMasonry(gridEl, visibleItems, item=>visibleItems.indexOf(item));
     }
   }
 

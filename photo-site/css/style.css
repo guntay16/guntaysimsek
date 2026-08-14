@@ -183,11 +183,17 @@ header{
 .cat-section:first-child .cat-heading{margin-top:12px;padding-top:0;border-top:none;}
 
 .grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  align-items:start;
+  display:flex;
+  align-items:flex-start;
   gap:20px;
   padding:4px 0 40px;
+}
+.grid-col{
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  flex:1 1 0;
+  min-width:0;
 }
 .tile{
   position:relative;
@@ -195,7 +201,7 @@ header{
   cursor:pointer;
   background:var(--bg-raise);
 }
-.tile.tile-wide{grid-column:1 / -1;}
+.tile.tile-wide{width:100%;}
 .tile img{
   width:100%;height:auto;display:block;
   transition:transform .5s ease, filter .5s ease;
