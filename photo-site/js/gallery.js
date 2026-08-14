@@ -4,7 +4,7 @@ async function loadPhotos(){
 }
 
 function init(ITEMS){
-  const CATEGORY_ORDER = ["Ay ve Uçak","Havalimanları","Havacılık","Hava Gösterisi","Hayvanlar","Portre","Ağaçlar","Şehirler","Seyahat"];
+  const CATEGORY_ORDER = ["Ay ve Uçak","Havalimanları","Havadan","Hava Gösterisi","Hayvanlar","Portre","Ağaçlar","Şehirler","Seyahat"];
   const categories = ["Tümü", ...CATEGORY_ORDER.filter(c=>ITEMS.some(i=>i.cat===c))];
   const filtersEl = document.getElementById('filters');
   const gridEl = document.getElementById('grid');
