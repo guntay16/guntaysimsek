@@ -5,6 +5,14 @@ async function loadPhotos(){
 
 function init(ITEMS){
   const CATEGORY_ORDER = ["Ay ve Uçak","Havalimanları","Havadan","Hava Gösterisi","Hayvanlar","Portre","Ağaçlar","Şehirler","Seyahat"];
+  const CATEGORY_LABELS_EN = {
+    "Tümü":"All","Ay ve Uçak":"Moon and Aircraft","Havalimanları":"Airports","Havadan":"Aerial",
+    "Hava Gösterisi":"Air Show","Hayvanlar":"Animals","Portre":"Portrait","Ağaçlar":"Trees",
+    "Şehirler":"Cities","Seyahat":"Travel"
+  };
+  function catLabel(cat){
+    return CATEGORY_LABELS_EN[cat] ? cat + ' / ' + CATEGORY_LABELS_EN[cat] : cat;
+  }
   const categories = ["Tümü", ...CATEGORY_ORDER.filter(c=>ITEMS.some(i=>i.cat===c))];
   const filtersEl = document.getElementById('filters');
   const gridEl = document.getElementById('grid');
@@ -15,7 +23,7 @@ function init(ITEMS){
     categories.forEach(cat=>{
       const btn = document.createElement('button');
       btn.className = 'filter-btn' + (cat===activeCat ? ' active' : '');
-      btn.textContent = cat;
+      btn.textContent = catLabel(cat);
       btn.onclick = ()=>{ activeCat = cat; renderFilters(); renderGrid(); };
       filtersEl.appendChild(btn);
     });
@@ -25,7 +33,7 @@ function init(ITEMS){
     const tile = document.createElement('div');
     tile.className = 'tile' + (item.wide ? ' tile-wide' : '');
     tile.innerHTML = `<img src="${item.thumb}" alt="${item.caption}" loading="lazy">
-      <div class="tile-cap"><span class="tile-cat">${item.cat}</span>${item.caption}</div>`;
+      <div class="tile-cap"><span class="tile-cat">${catLabel(item.cat)}</span>${item.caption}</div>`;
     tile.onclick = ()=> openLightbox(idx);
     return tile;
   }
