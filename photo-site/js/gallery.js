@@ -49,16 +49,22 @@ function init(ITEMS){
     if(normal.length===0) return;
     const gridDiv = document.createElement('div');
     gridDiv.className = 'grid';
-    const cols = [];
     const n = Math.min(columnCount(), normal.length);
+    const cols = [];
+    const colHeights = new Array(n).fill(0);
     for(let i=0;i<n;i++){
       const col = document.createElement('div');
       col.className = 'grid-col';
       cols.push(col);
       gridDiv.appendChild(col);
     }
-    normal.forEach((item, i)=>{
-      cols[i % n].appendChild(buildTile(item, indexOf(item)));
+    normal.forEach(item=>{
+      let shortest = 0;
+      for(let i=1;i<n;i++){
+        if(colHeights[i] < colHeights[shortest]) shortest = i;
+      }
+      cols[shortest].appendChild(buildTile(item, indexOf(item)));
+      colHeights[shortest] += (item.r || 0.75);
     });
     container.appendChild(gridDiv);
   }
