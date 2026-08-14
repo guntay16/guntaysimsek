@@ -88,6 +88,48 @@ header{
 }
 .exhibit-text p:last-child{margin-bottom:0;}
 
+.press{
+  padding:40px 20px;
+  border-bottom:1px solid var(--line);
+}
+.press-label{
+  font-size:0.68rem;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--accent);
+}
+.press-title{
+  font-family:'Fraunces', serif;
+  font-weight:500;
+  font-size:clamp(1.5rem,4vw,2.1rem);
+  margin:10px 0 28px;
+}
+.press-quotes{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:24px 32px;
+}
+.press-quote{
+  margin:0;
+  padding-left:16px;
+  border-left:2px solid var(--accent);
+}
+.press-quote p{
+  margin:0 0 10px;
+  font-family:'Fraunces', serif;
+  font-size:0.95rem;
+  line-height:1.6;
+  color:var(--ink);
+}
+.press-quote cite{
+  display:block;
+  font-style:normal;
+  font-size:0.7rem;
+  letter-spacing:0.04em;
+  color:var(--ink-dim);
+}
+.press-quote cite span{display:block;color:var(--accent);text-transform:uppercase;letter-spacing:0.06em;font-size:0.66rem;margin-top:2px;}
+
 .series{
   padding:40px 20px;
   border-bottom:1px solid var(--line);
