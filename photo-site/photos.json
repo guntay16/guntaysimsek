@@ -358,5 +358,29 @@
     "caption": "Bombay, 2011",
     "thumb": "images/thumbs/seyahat--bombay-2011.jpg",
     "full": "images/full/seyahat--bombay-2011.jpg"
+  },
+  {
+    "cat": "Seyahat",
+    "caption": "Güney Afrika, Eland",
+    "thumb": "images/thumbs/seyahat--guney-afrika-eland.jpg",
+    "full": "images/full/seyahat--guney-afrika-eland.jpg"
+  },
+  {
+    "cat": "Seyahat",
+    "caption": "Mombasa, Kenya",
+    "thumb": "images/thumbs/seyahat--mombasa-kenya.jpg",
+    "full": "images/full/seyahat--mombasa-kenya.jpg"
+  },
+  {
+    "cat": "Seyahat",
+    "caption": "Güney Afrika, Devekuşu",
+    "thumb": "images/thumbs/seyahat--guney-afrika-devekusu.jpg",
+    "full": "images/full/seyahat--guney-afrika-devekusu.jpg"
+  },
+  {
+    "cat": "Portre",
+    "caption": "Ulan Batur, Kartal",
+    "thumb": "images/thumbs/portre--ulan-batur-kartal.jpg",
+    "full": "images/full/portre--ulan-batur-kartal.jpg"
   }
 ]
