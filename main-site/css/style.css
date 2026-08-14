@@ -482,6 +482,30 @@ section{padding:56px 0;}
 }
 .bio-section p:last-child{margin-bottom:0;}
 
+.personal{
+  margin-top:44px;
+  padding-top:36px;
+  border-top:1px solid var(--line);
+}
+.personal-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:20px;
+}
+.personal-cell img{
+  width:100%;
+  height:auto;
+  display:block;
+  border:1px solid var(--line);
+}
+.personal-cap{
+  margin-top:6px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:0.7rem;
+  color:var(--charcoal);
+  letter-spacing:0.02em;
+}
+
 /* İletişim + footer */
 .contact{
   background:var(--ink);
