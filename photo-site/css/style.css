@@ -183,21 +183,19 @@ header{
 .cat-section:first-child .cat-heading{margin-top:12px;padding-top:0;border-top:none;}
 
 .grid{
-  column-count:2;
-  column-gap:4px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  align-items:start;
+  gap:20px;
   padding:4px 0 40px;
 }
-@media (min-width:640px){ .grid{column-count:3;} }
-@media (min-width:960px){ .grid{column-count:4;} }
-@media (min-width:1280px){ .grid{column-count:5;} }
 .tile{
   position:relative;
   overflow:hidden;
   cursor:pointer;
   background:var(--bg-raise);
-  break-inside:avoid;
-  margin-bottom:4px;
 }
+.tile.tile-wide{grid-column:1 / -1;}
 .tile img{
   width:100%;height:auto;display:block;
   transition:transform .5s ease, filter .5s ease;

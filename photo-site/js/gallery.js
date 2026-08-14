@@ -23,7 +23,7 @@ function init(ITEMS){
 
   function buildTile(item, idx){
     const tile = document.createElement('div');
-    tile.className = 'tile';
+    tile.className = 'tile' + (item.wide ? ' tile-wide' : '');
     tile.innerHTML = `<img src="${item.thumb}" alt="${item.caption}" loading="lazy">
       <div class="tile-cap"><span class="tile-cat">${item.cat}</span>${item.caption}</div>`;
     tile.onclick = ()=> openLightbox(idx);

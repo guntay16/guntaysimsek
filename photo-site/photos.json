@@ -205,9 +205,10 @@
   },
   {
     "cat": "Seyahat",
-    "caption": "Azerbaycan",
+    "caption": "Nohur Gölü, Azerbaycan, 2018",
     "thumb": "images/thumbs/seyahat--azerbaycan.jpg",
-    "full": "images/full/seyahat--azerbaycan.jpg"
+    "full": "images/full/seyahat--azerbaycan.jpg",
+    "wide": true
   },
   {
     "cat": "Şehirler",
@@ -358,12 +359,6 @@
     "caption": "Mombasa, Kenya",
     "thumb": "images/thumbs/seyahat--mombasa-kenya.jpg",
     "full": "images/full/seyahat--mombasa-kenya.jpg"
-  },
-  {
-    "cat": "Hayvanlar",
-    "caption": "Güney Afrika, Devekuşu",
-    "thumb": "images/thumbs/seyahat--guney-afrika-devekusu.jpg",
-    "full": "images/full/seyahat--guney-afrika-devekusu.jpg"
   },
   {
     "cat": "Hayvanlar",
