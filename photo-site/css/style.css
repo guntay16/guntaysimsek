@@ -107,8 +107,7 @@ header{
 .series-grid{
   display:flex;
   flex-direction:column;
-  gap:24px;
-  max-width:760px;
+  gap:28px;
 }
 .series-hero{
   cursor:pointer;
