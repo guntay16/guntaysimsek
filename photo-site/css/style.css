@@ -130,6 +130,88 @@ header{
 }
 .press-quote cite span{display:block;color:var(--accent);text-transform:uppercase;letter-spacing:0.06em;font-size:0.66rem;margin-top:2px;}
 
+.press-intro{
+  font-family:'Fraunces', serif;
+  font-style:italic;
+  font-weight:300;
+  font-size:0.95rem;
+  line-height:1.75;
+  color:var(--ink-dim);
+  max-width:820px;
+  margin:0 0 32px;
+  padding-bottom:28px;
+  border-bottom:1px solid var(--line);
+}
+
+.press-essays{
+  margin-top:44px;
+  padding-top:36px;
+  border-top:1px solid var(--line);
+  display:flex;
+  flex-direction:column;
+  gap:44px;
+}
+.press-essay{max-width:720px;}
+.press-essay-author{
+  font-family:'Fraunces', serif;
+  font-weight:500;
+  font-size:1.1rem;
+  margin:0 0 16px;
+  color:var(--ink);
+}
+.press-essay-author span{
+  display:block;
+  font-family:'IBM Plex Mono', monospace;
+  font-weight:400;
+  font-size:0.68rem;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-top:4px;
+}
+.press-essay p{
+  font-family:'Fraunces', serif;
+  font-size:0.9rem;
+  line-height:1.8;
+  color:var(--ink-dim);
+  margin:0 0 14px;
+}
+.press-essay p:last-child{margin-bottom:0;}
+
+.press-links-block{
+  margin-top:40px;
+  padding-top:32px;
+  border-top:1px solid var(--line);
+}
+.press-links-block .press-essay-author{margin-bottom:16px;}
+.press-links{
+  list-style:none;
+  margin:0;
+  padding:0;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:10px 28px;
+}
+.press-links li{margin:0;}
+.press-links a{
+  display:block;
+  font-size:0.78rem;
+  line-height:1.5;
+  color:var(--ink-dim);
+  text-decoration:none;
+  border-bottom:1px solid transparent;
+}
+.press-links a:hover{color:var(--ink);border-bottom-color:var(--accent);}
+.press-link-outlet{
+  display:block;
+  color:var(--accent);
+  text-transform:uppercase;
+  letter-spacing:0.05em;
+  font-size:0.62rem;
+  font-family:'IBM Plex Mono', monospace;
+  margin-bottom:2px;
+}
+
 .series{
   padding:40px 20px;
   border-bottom:1px solid var(--line);
