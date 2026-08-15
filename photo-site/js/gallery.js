@@ -41,8 +41,9 @@ function init(ITEMS){
   function columnCount(){
     const w = window.innerWidth;
     if(w < 640) return 1;
-    if(w < 960) return 2;
-    return 3;
+    if(w < 900) return 2;
+    if(w < 1200) return 3;
+    return 4;
   }
 
   function renderMasonry(container, group, indexOf){
@@ -182,6 +183,20 @@ function init(ITEMS){
       }, 1500);
     });
   });
+
+  function wireModal(modalId, btnId, closeId){
+    const modal = document.getElementById(modalId);
+    const btn = document.getElementById(btnId);
+    if(!modal || !btn) return;
+    btn.onclick = ()=> modal.classList.add('open');
+    document.getElementById(closeId).onclick = ()=> modal.classList.remove('open');
+    modal.addEventListener('click', (e)=>{ if(e.target===modal) modal.classList.remove('open'); });
+    document.addEventListener('keydown', (e)=>{
+      if(e.key==='Escape') modal.classList.remove('open');
+    });
+  }
+  wireModal('konseptModal', 'konseptBtn', 'konseptClose');
+  wireModal('hakkindaModal', 'hakkindaBtn', 'hakkindaClose');
 
   document.querySelectorAll('.series-tile, .series-hero').forEach(tile=>{
     tile.addEventListener('click', ()=>{

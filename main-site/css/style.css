@@ -374,13 +374,13 @@ section{padding:56px 0;}
   border-bottom:1px solid var(--crimson);
   white-space:nowrap;
 }
-.photo-grid{
+.photo-row{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  grid-template-columns:repeat(4,1fr);
   gap:10px;
 }
 .photo-cell{
-  aspect-ratio:4/5;
+  aspect-ratio:1/1;
   overflow:hidden;
   background:var(--charcoal);
 }
@@ -396,20 +396,9 @@ section{padding:56px 0;}
   filter:grayscale(0) contrast(1.08);
   transform:scale(1.03);
 }
-.photo-more{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:var(--white);
-  border:1px solid var(--line);
-  font-family:'IBM Plex Mono', monospace;
-  font-size:0.75rem;
-  text-align:center;
-  text-decoration:none;
-  color:var(--ink);
-  padding:8px;
+@media (max-width:560px){
+  .photo-row{grid-template-columns:repeat(2,1fr);}
 }
-.photo-more:hover{border-color:var(--crimson);color:var(--crimson);}
 
 /* Hakkında */
 .about-grid{
@@ -481,30 +470,6 @@ section{padding:56px 0;}
   color:var(--charcoal);
 }
 .bio-section p:last-child{margin-bottom:0;}
-
-.personal{
-  margin-top:44px;
-  padding-top:36px;
-  border-top:1px solid var(--line);
-}
-.personal-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
-  gap:20px;
-}
-.personal-cell img{
-  width:100%;
-  height:auto;
-  display:block;
-  border:1px solid var(--line);
-}
-.personal-cap{
-  margin-top:6px;
-  font-family:'IBM Plex Mono', monospace;
-  font-size:0.7rem;
-  color:var(--charcoal);
-  letter-spacing:0.02em;
-}
 
 /* İletişim + footer */
 .contact{

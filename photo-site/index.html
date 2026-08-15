@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=11">
+<link rel="stylesheet" href="css/style.css?v=26">
 </head>
 <body>
 
@@ -17,9 +17,10 @@
   <p class="site-sub">Fotoğrafçı / Photographer</p>
   <div class="header-links">
     <a class="back-link" href="https://guntaysimsek.com" target="_blank" rel="noopener">← guntaysimsek.com</a>
-    <a class="back-link" href="https://guntaysimsek.com/hakkinda/" target="_blank" rel="noopener">ⓘ Hakkında / About</a>
+    <button class="back-link concept-trigger" type="button" id="hakkindaBtn">ⓘ Hakkında / About</button>
     <a class="back-link" href="#degerlendirmeler">Değerlendirmeler / Reviews</a>
-    <a class="back-link" href="#yazili-basin">Basında / Press</a>
+    <button class="back-link concept-trigger" type="button" id="konseptBtn">✦ Sergi Konsepti / Concept</button>
+    <a class="back-link" href="#medya">Basında / Press</a>
   </div>
 </header>
 
@@ -170,37 +171,28 @@
         <p>Güntay'ın fotoğraflarında gördüğümüz estetik, amatör bir hevesin çok ötesinde; disiplinle beslenmiş bir tutkunun ve aşkın karşılık bulmuş hâlidir.</p>
       </div>
     </div>
-    <div class="press-links-block" id="yazili-basin">
-      <h3 class="press-essay-author">Yazılı Basın <span class="press-essay-author-en">/ Press Coverage</span></h3>
+    <div class="press-links-block" id="medya">
+      <h3 class="press-essay-author">Medya <span class="press-essay-author-en">/ Media</span></h3>
       <ul class="press-links">
-        <li><a href="https://www.airturkhaber.com/haberler/guntay-simsekten-akmde-sergi/" target="_blank" rel="noopener"><span class="press-link-outlet">Air Türk Haber</span>Güntay Şimşek'ten AKM'de Sergi</a></li>
-        <li><a href="https://www.aksam.com.tr/magazin/iki-dunya-arasinda-sergi/haber-1643907" target="_blank" rel="noopener"><span class="press-link-outlet">Akşam</span>İki Dünya Arasında Sergi</a></li>
-        <li><a href="https://akmistanbul.gov.tr/tr/etkinlik/esik-iki-dunya-arasi-ara-hal-ara-zaman" target="_blank" rel="noopener"><span class="press-link-outlet">AKM İstanbul</span>Eşik; İki Dünya Arası - Ara Hâl / Ara Zaman (Resmi Etkinlik Sayfası)</a></li>
-        <li><a href="https://www.bloomberght.com/guntay-simsek-ten-ara-hl-ara-zaman-sergisi-3768676" target="_blank" rel="noopener"><span class="press-link-outlet">BloombergHT</span>Güntay Şimşek'ten 'Ara Hâl / Ara Zaman' Sergisi</a></li>
-        <li><a href="https://www.ekonomim.com/kultur-sanat/gazeteci-yazar-sanatci-guntay-simsekin-ara-hal-ara-zaman-sergisi-acildi-haberi-875414" target="_blank" rel="noopener"><span class="press-link-outlet">Ekonomim</span>Gazeteci, Yazar, Sanatçı Güntay Şimşek'in 'Ara Hâl / Ara Zaman' Sergisi Açıldı</a></li>
         <li><a href="https://www.haberturk.com/kultur-sanat/esik-iki-dunya-arasi-sergisi-akm-de-3860341" target="_blank" rel="noopener"><span class="press-link-outlet">Habertürk</span>'Eşik, İki Dünya Arası' Sergisi AKM'de</a></li>
         <li><a href="https://haber.aero/aero-gundem/guntay-simsekten-esik-iki-dunya-arasi-sergisi/" target="_blank" rel="noopener"><span class="press-link-outlet">Haber Aero</span>Güntay Şimşek'ten 'Eşik; İki Dünya Arası' Sergisi</a></li>
         <li><a href="https://haber.aero/aero-gundem/guntay-simsekin-fotograsf-sergisi-sektoru-bulusturdu/" target="_blank" rel="noopener"><span class="press-link-outlet">Haber Aero</span>Güntay Şimşek'in Fotoğraf Sergisi Sektörü Buluşturdu</a></li>
-        <li><a href="https://haberdijital.com.tr/guntay-simsekin-esik-iki-dunya-arasi-sergisi/" target="_blank" rel="noopener"><span class="press-link-outlet">Haber Dijital</span>Güntay Şimşek'in 'Eşik; İki Dünya Arası' Sergisi</a></li>
         <li><a href="https://htkulup.haberturk.com/guncel/haber/3861377-simsek-ten-esik-iki-dunya-arasi-ara-hl-ara-zaman-sergisi" target="_blank" rel="noopener"><span class="press-link-outlet">HT Kulüp</span>Şimşek'ten 'Eşik; İki Dünya Arası – Ara Hâl / Ara Zaman' Sergisi</a></li>
-        <li><a href="https://x.com/TC_istanbul/status/2021955631633060155" target="_blank" rel="noopener"><span class="press-link-outlet">İstanbul Valiliği (X)</span>Sergi Açılışı Paylaşımı</a></li>
-        <li><a href="https://www.karar.com/kultur-sanat-haberleri/guntay-simsekten-ara-hal-ara-zaman-modern-insanin-varolussal-2028003" target="_blank" rel="noopener"><span class="press-link-outlet">Karar</span>Güntay Şimşek'ten 'Ara Hâl / Ara Zaman': Modern İnsanın Varoluşsal Eşiği</a></li>
+        <li><a href="https://www.bloomberght.com/guntay-simsek-ten-ara-hl-ara-zaman-sergisi-3768676" target="_blank" rel="noopener"><span class="press-link-outlet">BloombergHT</span>Güntay Şimşek'ten 'Ara Hâl / Ara Zaman' Sergisi</a></li>
         <li><a href="https://www.milliyet.com.tr/kultur-sanat/ara-hal-ve-zamanda-dusunmeye-davet-7535557" target="_blank" rel="noopener"><span class="press-link-outlet">Milliyet</span>Ara Hâl ve Zamanda Düşünmeye Davet</a></li>
         <li><a href="https://www.posta.com.tr/ekonomi/23-subata-kadar-ziyaretcileri-bekliyor-2963324" target="_blank" rel="noopener"><span class="press-link-outlet">Posta</span>23 Şubat'a Kadar Ziyaretçileri Bekliyor</a></li>
+        <li><a href="https://www.aksam.com.tr/magazin/iki-dunya-arasinda-sergi/haber-1643907" target="_blank" rel="noopener"><span class="press-link-outlet">Akşam</span>İki Dünya Arasında Sergi</a></li>
+        <li><a href="https://www.karar.com/kultur-sanat-haberleri/guntay-simsekten-ara-hal-ara-zaman-modern-insanin-varolussal-2028003" target="_blank" rel="noopener"><span class="press-link-outlet">Karar</span>Güntay Şimşek'ten 'Ara Hâl / Ara Zaman': Modern İnsanın Varoluşsal Eşiği</a></li>
+        <li><a href="https://www.airturkhaber.com/haberler/guntay-simsekten-akmde-sergi/" target="_blank" rel="noopener"><span class="press-link-outlet">Air Türk Haber</span>Güntay Şimşek'ten AKM'de Sergi</a></li>
+        <li><a href="https://akmistanbul.gov.tr/tr/etkinlik/esik-iki-dunya-arasi-ara-hal-ara-zaman" target="_blank" rel="noopener"><span class="press-link-outlet">AKM İstanbul</span>Eşik; İki Dünya Arası - Ara Hâl / Ara Zaman (Resmi Etkinlik Sayfası)</a></li>
+        <li><a href="https://www.ekonomim.com/kultur-sanat/gazeteci-yazar-sanatci-guntay-simsekin-ara-hal-ara-zaman-sergisi-acildi-haberi-875414" target="_blank" rel="noopener"><span class="press-link-outlet">Ekonomim</span>Gazeteci, Yazar, Sanatçı Güntay Şimşek'in 'Ara Hâl / Ara Zaman' Sergisi Açıldı</a></li>
+        <li><a href="https://haberdijital.com.tr/guntay-simsekin-esik-iki-dunya-arasi-sergisi/" target="_blank" rel="noopener"><span class="press-link-outlet">Haber Dijital</span>Güntay Şimşek'in 'Eşik; İki Dünya Arası' Sergisi</a></li>
         <li><a href="https://sanatokur.com/guntay-simsekten-ozel-secki-sergisi/" target="_blank" rel="noopener"><span class="press-link-outlet">Sanat Okur</span>Güntay Şimşek'ten Özel Seçki Sergisi</a></li>
         <li><a href="https://tolgaozbek.com/haberler/guntay-simsekten-fotograf-sergisi-havacilik-sektorunu-bir-araya-getirdi/" target="_blank" rel="noopener"><span class="press-link-outlet">Tolga Özbek</span>Güntay Şimşek'ten Fotoğraf Sergisi Havacılık Sektörünü Bir Araya Getirdi</a></li>
         <li><a href="https://t24.com.tr/yasam/gazeteci-ve-fotograf-sanatcisi-guntay-simsek-in-ara-hal-ara-zaman-sergisi-akm-de-acildi,1298891" target="_blank" rel="noopener"><span class="press-link-outlet">T24</span>Gazeteci ve Fotoğraf Sanatçısı Güntay Şimşek'in 'Ara Hâl / Ara Zaman' Sergisi AKM'de Açıldı</a></li>
-      </ul>
-    </div>
-    <div class="press-links-block">
-      <h3 class="press-essay-author">Görsel Basın <span class="press-essay-author-en">/ Video &amp; Social Media</span></h3>
-      <ul class="press-links">
-        <li><a href="https://www.instagram.com/p/DU3dyrujIXb/" target="_blank" rel="noopener"><span class="press-link-outlet">AKM İstanbul (Instagram)</span>Sergi Paylaşımı</a></li>
+        <li><a href="https://www.yenisafak.com/yazarlar/ali-saydam/14-subat-tuccarlar-gunu-4797292" target="_blank" rel="noopener"><span class="press-link-outlet">Yeni Şafak — Ali Saydam</span>14 Şubat Tüccarlar Günü</a></li>
         <li><a href="https://www.youtube.com/watch?v=8hSfVxDguv0" target="_blank" rel="noopener"><span class="press-link-outlet">Aysun Öz'den Etkinlik Ajandası</span>20-27 Şubat Tarihleri Arasında Ne Yapsak? Kültür Sanat Listesi</a></li>
         <li><a href="https://www.youtube.com/watch?v=QodwcwcG4Ys" target="_blank" rel="noopener"><span class="press-link-outlet">Habertürk TV</span>Güntay Şimşek'in Fotoğraf Sergisine Yoğun İlgi</a></li>
-        <li><a href="https://x.com/HaberturkTV/status/2021990282334466532" target="_blank" rel="noopener"><span class="press-link-outlet">Habertürk TV (X)</span>Sergi Paylaşımı</a></li>
-        <li><a href="https://www.instagram.com/tc_istanbul/p/DUqVG7ZjLCw/" target="_blank" rel="noopener"><span class="press-link-outlet">İstanbul Valiliği (Instagram)</span>Sergi Açılışı Paylaşımı</a></li>
-        <li><a href="https://tr.linkedin.com/posts/kerem-maybek-8b9a2039_g%C3%BCntay-%C5%9Fim%C5%9Fekin-havac%C4%B1l%C4%B1%C4%9Fa-sanatsal-bir-activity-7428115615405477888-c_UB" target="_blank" rel="noopener"><span class="press-link-outlet">Kerem Maybek (LinkedIn)</span>Güntay Şimşek'in Havacılığa Sanatsal Bir Bakışı</a></li>
         <li><a href="https://www.youtube.com/watch?v=Wy41nrdvpAY" target="_blank" rel="noopener"><span class="press-link-outlet">YouTube</span>Gökyüzünden Manzaralar... Bir Gazetecinin Objektifinden #güntayşimşek</a></li>
         <li><a href="https://www.youtube.com/watch?v=itVKOmYHQmE" target="_blank" rel="noopener"><span class="press-link-outlet">YouTube</span>Ünlü Havacılık Gazetecisi Güntay Şimşek'in AKM'deki Fotoğraf Sergisi</a></li>
       </ul>
@@ -222,6 +214,73 @@
   © 2026 Güntay Şimşek — Tüm hakları saklıdır. / All rights reserved.
 </footer>
 
+<div class="concept-modal" id="hakkindaModal">
+  <div class="concept-modal-inner">
+    <button class="lb-close" id="hakkindaClose">✕</button>
+    <span class="exhibit-label">Hakkında <span class="exhibit-label-en">/ About</span></span>
+    <div class="exhibit-text-bilingual">
+      <div class="exhibit-text-col">
+        <span class="exhibit-col-label">Türkçe</span>
+        <p>Güntay Şimşek, ulaşım, enerji ve savunma eksenindeki ekonomi yazılarının; havacılık sektörünü geniş kitlelere ulaştıran medya çalışmalarının öncü isimlerindendir. Hem yazılı basında hem televizyon mecralarında hazırladığı içeriklerle hava taşımacılığının Türkiye'deki en görünür temsilcilerinden biri olmuştur.</p>
+        <p>Yaklaşık otuz yıla yaklaşan Airport programı, Güntay Şimşek'in havacılığı kamuoyuyla buluşturma misyonunun en uzun soluklu örneğidir.</p>
+        <p>Fotoğrafla ilişkisi ise çok daha eskidir: İlk fotoğraf makinesiyle 1982'de tanışmış; gençlik yıllarından itibaren yolculuklarını, karşılaşmalarını ve gözlemlerini görüntülerle kaydetmiştir.</p>
+        <p>Bu sergi, yıllara yayılan bu birikimin; kişisel hafızadan süzülen imgelerin ve zaman-mekânın ötesine geçen tanıklık hâlinin bir araya gelmiş hâlidir. Güntay Şimşek'in fotoğrafları, yalnızca "gören" bir gözün değil; aynı zamanda "kaydeden, düşünen ve tanıklık eden" bir zihnin izlerini taşır.</p>
+      </div>
+      <div class="exhibit-text-col">
+        <span class="exhibit-col-label">English</span>
+        <p>Güntay Şimşek is one of the pioneering figures who has brought discussions on the economy — particularly at the intersection of transportation, energy, and defense — to the public sphere, while also making the aviation sector accessible to wider audiences through media.</p>
+        <p>Through content he has produced in both print journalism and television, he has become one of the most visible representatives of air transportation in Türkiye.</p>
+        <p>His relationship with photography, however, dates back much further. He encountered his first camera in 1982 and, from his youth onward, has documented his journeys, encounters, and observations through images.</p>
+        <p>This exhibition brings together that accumulation spread across the years: images distilled from personal memory, and a form of witnessing that transcends time and place. Güntay Şimşek's photographs bear the traces not only of an eye that sees, but of a mind that records, reflects, and bears witness.</p>
+      </div>
+    </div>
+    <p class="modal-more-link"><a href="http://localhost:8000/hakkinda/" target="_blank" rel="noopener">Tam biyografi → guntaysimsek.com/hakkinda</a></p>
+  </div>
+</div>
+
+<div class="concept-modal" id="konseptModal">
+  <div class="concept-modal-inner">
+    <button class="lb-close" id="konseptClose">✕</button>
+    <span class="exhibit-label">Sergi Konsepti <span class="exhibit-label-en">/ Exhibition Concept</span></span>
+    <div class="exhibit-text-bilingual">
+      <div class="exhibit-text-col">
+        <span class="exhibit-col-label">Türkçe</span>
+        <p>Eşik; İki Dünya Arası – Ara Hâl / Ara Zaman, modern insanın doğa ile medeniyet, geçmiş ile gelecek, aidiyet ile yabancılaşma arasında yaşadığı "eşik hâli"ni fotoğraf üzerinden sorgulayan bir sergi.</p>
+        <p>Doğa ile kent, yapı ile yıkım, hareket ile sükûnet, kalıcılık ile geçicilik sergide aynı anlatının farklı parçaları olarak yan yana geliyor. Fotoğraflar, modern insanın ne bütünüyle doğaya dönebildiği ne de kendi kurduğu teknolojik ve kentsel dünyanın içinde tam anlamıyla huzur bulabildiği bu ara hâle ve ara zamana odaklanıyor.</p>
+        <p>Sergi bir cevap ya da gelecek tasavvuru sunmaktan çok, izleyiciyi durmaya, bakmaya ve kendi bulunduğu "eşiği" düşünmeye davet ediyor. Fotoğraf ise bu yolculukta yalnızca bir kayıt aracı değil; zamanın, mekânın ve insanın bıraktığı izleri görünür kılan bir düşünme biçimine dönüşüyor.</p>
+        <p>Serginin kavramsal çerçevesi ve konsept çalışması, fotoğrafçı Coşar Kulaksız tarafından hazırlanmıştır.</p>
+      </div>
+      <div class="exhibit-text-col">
+        <span class="exhibit-col-label">English</span>
+        <p>"Threshold; Between Two Worlds – A Liminal State / A Liminal Time" is an exhibition that questions, through photography, the "liminal state" contemporary humanity experiences between nature and civilisation, past and future, belonging and estrangement.</p>
+        <p>Nature and the city, construction and destruction, motion and stillness, permanence and transience come together in the exhibition as different parts of the same narrative. The photographs focus on this liminal state and liminal time, in which modern humans can neither fully return to nature nor find complete peace within the technological and urban world they themselves have built.</p>
+        <p>Rather than offering an answer or a vision of the future, the exhibition invites viewers to pause, to look, and to reflect on their own "threshold." Photography, in this journey, becomes not merely a means of recording but a way of thinking that makes visible the traces left by time, place, and people.</p>
+        <p>The exhibition's conceptual framework and concept design were prepared by photographer Coşar Kulaksız.</p>
+      </div>
+    </div>
+
+    <div class="curator-credit">
+      <div class="curator-bio">
+        <h3 class="press-essay-author">Coşar Kulaksız Kimdir? <span class="press-essay-author-en">/ Who is Coşar Kulaksız?</span></h3>
+        <div class="exhibit-text-bilingual">
+          <div class="exhibit-text-col">
+            <span class="exhibit-col-label">Türkçe</span>
+            <p>Coşar Kulaksız, 1975 Ankara doğumlu fotoğrafçı ve küratördür. Rutgers Üniversitesi'ndeki lisans eğitiminin ardından Marmara Üniversitesi Güzel Sanatlar Fakültesi Fotoğraf Bölümü'nde yüksek lisans, Mimar Sinan Güzel Sanatlar Üniversitesi'nde sanatta yeterlik eğitimini tamamladı.</p>
+            <p>Türkiye Fotoğraf Sanatı Federasyonu'nun kuruluşunda görev alan Kulaksız, FIAP Türkiye temsilciliği yaptı. 2015'ten bu yana FOLKART'ın uluslararası fotoğraf etkinliklerinin direktörlüğünü yürütüyor. Türkiye'de ve yurt dışında 50'den fazla serginin küratörlüğünü üstlendi.</p>
+            <p>2018'den bu yana AICA – Uluslararası Sanat Eleştirmenleri Birliği üyesi olan Kulaksız, çalışmalarında folklor, mitoloji ve semboller üzerine yoğunlaşıyor.</p>
+          </div>
+          <div class="exhibit-text-col">
+            <span class="exhibit-col-label">English</span>
+            <p>Coşar Kulaksız is a photographer and curator, born in Ankara in 1975. After his undergraduate studies at Rutgers University, he completed a master's degree in Photography at Marmara University Faculty of Fine Arts, and his proficiency in art at Mimar Sinan Fine Arts University.</p>
+            <p>Kulaksız took part in founding the Photographic Art Federation of Turkey and served as Turkey's FIAP representative. Since 2015, he has directed FOLKART's international photography events, and has curated more than 50 exhibitions in Turkey and abroad.</p>
+            <p>An AICA (International Association of Art Critics) member since 2018, Kulaksız focuses his work on folklore, mythology, and symbols.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="lightbox" id="lightbox">
   <button class="lb-close" id="lbClose">✕</button>
   <button class="lb-nav lb-prev" id="lbPrev">‹</button>
@@ -237,7 +296,7 @@
 </div>
 
 <script type="application/json" id="photos-data">[{"cat":"Ay ve Uçak","caption":"Ay ve Uçak Serisi IV","thumb":"images/thumbs/ay-ve-ucak--ay-ve-ucak-serisi-iv.jpg","full":"images/full/ay-ve-ucak--ay-ve-ucak-serisi-iv.jpg","r":0.667},{"cat":"Ay ve Uçak","caption":"Ay ve Uçak Serisi I (Gece)","thumb":"images/thumbs/ay-ve-ucak--ay-ve-ucak-serisi-i.jpg","full":"images/full/ay-ve-ucak--ay-ve-ucak-serisi-i.jpg","r":0.7},{"cat":"Ay ve Uçak","caption":"Ay ve Uçak Serisi II (Gece)","thumb":"images/thumbs/ay-ve-ucak--ay-ve-ucak-serisi-ii.jpg","full":"images/full/ay-ve-ucak--ay-ve-ucak-serisi-ii.jpg","r":0.7},{"cat":"Ay ve Uçak","caption":"Ay ve Uçak Serisi III (Gece)","thumb":"images/thumbs/ay-ve-ucak--ay-ve-ucak-serisi-iii.jpg","full":"images/full/ay-ve-ucak--ay-ve-ucak-serisi-iii.jpg","r":0.7},{"cat":"Havadan","caption":"Kapadokya, Balon Manzarası I","thumb":"images/thumbs/havacilik--kapadokya-balon-manzarasi-i.jpg","full":"images/full/havacilik--kapadokya-balon-manzarasi-i.jpg","r":0.67},{"cat":"Havadan","caption":"Kapadokya, Balon Manzarası II","thumb":"images/thumbs/havacilik--kapadokya-balon-manzarasi-ii.jpg","full":"images/full/havacilik--kapadokya-balon-manzarasi-ii.jpg","r":0.67},{"cat":"Havadan","caption":"Kapadokya, Balon Manzarası III","thumb":"images/thumbs/havacilik--kapadokya-balon-manzarasi-iii.jpg","full":"images/full/havacilik--kapadokya-balon-manzarasi-iii.jpg","r":0.67},{"cat":"Havalimanları","caption":"Atatürk Havalimanı, 2012 — Gün Batımı","thumb":"images/thumbs/havacilik--ataturk-havalimani-2012-gun-batimi.jpg","full":"images/full/havacilik--ataturk-havalimani-2012-gun-batimi.jpg","r":0.48},{"cat":"Havalimanları","caption":"Atatürk Havalimanı, Nisan 2012","thumb":"images/thumbs/havacilik--ataturk-havalimani-nisan-2012.jpg","full":"images/full/havacilik--ataturk-havalimani-nisan-2012.jpg","r":0.48},{"cat":"Havadan","caption":"Bulutlar","thumb":"images/thumbs/havacilik--bulutlar.jpg","full":"images/full/havacilik--bulutlar.jpg","r":1.505,"wide":true},{"cat":"Havalimanları","caption":"İstanbul Havalimanı, Yaklaşma Hattı","thumb":"images/thumbs/havacilik--istanbul-havalimani-yaklasma-hatti.jpg","full":"images/full/havacilik--istanbul-havalimani-yaklasma-hatti.jpg","r":0.667},{"cat":"Seyahat","caption":"Kazakistan, 2015","thumb":"images/thumbs/havacilik--kazakistan-2015.jpg","full":"images/full/havacilik--kazakistan-2015.jpg","r":0.664},{"cat":"Havalimanları","caption":"Atatürk Havalimanı, 2019","thumb":"images/thumbs/havacilik--ataturk-havalimani-2019.jpg","full":"images/full/havacilik--ataturk-havalimani-2019.jpg","r":0.744},{"cat":"Havalimanları","caption":"Singapur Changi Airport","thumb":"images/thumbs/havacilik--singapur-changi-airport.jpg","full":"images/full/havacilik--singapur-changi-airport.jpg","r":0.664},{"cat":"Hava Gösterisi","caption":"Hava Gösterisi","thumb":"images/thumbs/hava-gosterisi--hava-gosterisi.jpg","full":"images/full/hava-gosterisi--hava-gosterisi.jpg","r":0.667},{"cat":"Hava Gösterisi","caption":"Hava Gösterisi","thumb":"images/thumbs/hava-gosterisi--hava-gosterisi-2.jpg","full":"images/full/hava-gosterisi--hava-gosterisi-2.jpg","r":0.667},{"cat":"Hava Gösterisi","caption":"Hava Gösterisi","thumb":"images/thumbs/hava-gosterisi--hava-gosterisi-5.jpg","full":"images/full/hava-gosterisi--hava-gosterisi-5.jpg","r":0.667},{"cat":"Hava Gösterisi","caption":"Hava Gösterisi","thumb":"images/thumbs/hava-gosterisi--hava-gosterisi-3.jpg","full":"images/full/hava-gosterisi--hava-gosterisi-3.jpg","r":0.827},{"cat":"Hava Gösterisi","caption":"Hava Gösterisi — Frecce Tricolori","thumb":"images/thumbs/hava-gosterisi--hava-gosterisi-frecce-tricolori.jpg","full":"images/full/hava-gosterisi--hava-gosterisi-frecce-tricolori.jpg","r":0.667},{"cat":"Hava Gösterisi","caption":"Hava Gösterisi","thumb":"images/thumbs/hava-gosterisi--hava-gosterisi-4.jpg","full":"images/full/hava-gosterisi--hava-gosterisi-4.jpg","r":0.613},{"cat":"Portre","caption":"Somali","thumb":"images/thumbs/portre--somali.jpg","full":"images/full/portre--somali.jpg","r":1.502,"wide":true},{"cat":"Portre","caption":"Güney Afrika, Mart 2012","thumb":"images/thumbs/portre--guney-afrika-mart-2012.jpg","full":"images/full/portre--guney-afrika-mart-2012.jpg","r":1.509},{"cat":"Portre","caption":"Bangkok","thumb":"images/thumbs/portre--bangkok.jpg","full":"images/full/portre--bangkok.jpg","r":1.505},{"cat":"Ağaçlar","caption":"Vilnius, Litvanya, 2014","thumb":"images/thumbs/agaclar--vilnius-litvanya-2014.jpg","full":"images/full/agaclar--vilnius-litvanya-2014.jpg","r":0.664},{"cat":"Ağaçlar","caption":"Kar ve Ağaçlar","thumb":"images/thumbs/agaclar--kar-ve-agaclar.jpg","full":"images/full/agaclar--kar-ve-agaclar.jpg","r":0.75,"wide":true},{"cat":"Ağaçlar","caption":"Sisli Ağaç","thumb":"images/thumbs/agaclar--sisli-agac.jpg","full":"images/full/agaclar--sisli-agac.jpg","r":0.75},{"cat":"Ağaçlar","caption":"Yürüyen Ağaçlar","thumb":"images/thumbs/agaclar--sisli-agaclar.jpg","full":"images/full/agaclar--sisli-agaclar.jpg","r":0.563},{"cat":"Hayvanlar","caption":"Masai Mara","thumb":"images/thumbs/seyahat--masai-mara.jpg","full":"images/full/seyahat--masai-mara.jpg","r":0.664},{"cat":"Şehirler","caption":"Astana, 2023","thumb":"images/thumbs/seyahat--astana-2023.jpg","full":"images/full/seyahat--astana-2023.jpg","r":0.667},{"cat":"Hayvanlar","caption":"Güney Afrika, Mart 2012 — Boulders Beach","thumb":"images/thumbs/seyahat--guney-afrika-mart-2012-boulders-beach.jpg","full":"images/full/seyahat--guney-afrika-mart-2012-boulders-beach.jpg","r":0.664},{"cat":"Hayvanlar","caption":"Güney Afrika, Mart 2012 — Ümit Burnu Yolu","thumb":"images/thumbs/seyahat--guney-afrika-mart-2012-umit-burnu-yolu.jpg","full":"images/full/seyahat--guney-afrika-mart-2012-umit-burnu-yolu.jpg","r":0.664,"wide":true},{"cat":"Şehirler","caption":"Atina, Şubat 2009","thumb":"images/thumbs/seyahat--atina-subat-2009.jpg","full":"images/full/seyahat--atina-subat-2009.jpg","r":1.333},{"cat":"Şehirler","caption":"Monaco, 20 Nisan 2006","thumb":"images/thumbs/seyahat--monaco-20-nisan-2006.jpg","full":"images/full/seyahat--monaco-20-nisan-2006.jpg","r":0.75},{"cat":"Seyahat","caption":"Nohur Gölü, Azerbaycan, 2018","thumb":"images/thumbs/seyahat--azerbaycan.jpg","full":"images/full/seyahat--azerbaycan.jpg","wide":true,"r":0.293},{"cat":"Şehirler","caption":"Kazablanka, 2012","thumb":"images/thumbs/seyahat--kazablanka-2012.jpg","full":"images/full/seyahat--kazablanka-2012.jpg","r":1.505},{"cat":"Şehirler","caption":"Amsterdam, 2019","thumb":"images/thumbs/seyahat--amsterdam-2019.jpg","full":"images/full/seyahat--amsterdam-2019.jpg","r":0.667},{"cat":"Şehirler","caption":"Las Vegas, 2022","thumb":"images/thumbs/seyahat--las-vegas-2022.jpg","full":"images/full/seyahat--las-vegas-2022.jpg","r":1.499},{"cat":"Seyahat","caption":"Blue Mountains, Sydney","thumb":"images/thumbs/seyahat--blue-mountains-sydney.jpg","full":"images/full/seyahat--blue-mountains-sydney.jpg","r":0.667},{"cat":"Seyahat","caption":"Ümit Burnu, Cape Town","thumb":"images/thumbs/seyahat--umit-burnu-cape-town.jpg","full":"images/full/seyahat--umit-burnu-cape-town.jpg","r":0.667},{"cat":"Seyahat","caption":"Cape Town","thumb":"images/thumbs/seyahat--cape-town.jpg","full":"images/full/seyahat--cape-town.jpg","r":0.667},{"cat":"Şehirler","caption":"Dublin","thumb":"images/thumbs/seyahat--dublin.jpg","full":"images/full/seyahat--dublin.jpg","r":1.505},{"cat":"Hava Gösterisi","caption":"Hava Gösterisi","thumb":"images/thumbs/hava-gosterisi--hava-gosterisi-6.jpg","full":"images/full/hava-gosterisi--hava-gosterisi-6.jpg","r":1.502},{"cat":"Hava Gösterisi","caption":"Hava Gösterisi","thumb":"images/thumbs/hava-gosterisi--hava-gosterisi-7.jpg","full":"images/full/hava-gosterisi--hava-gosterisi-7.jpg","r":1.502},{"cat":"Seyahat","caption":"Mueang Boran, Tayland","thumb":"images/thumbs/seyahat--mueang-boran-tayland.jpg","full":"images/full/seyahat--mueang-boran-tayland.jpg","r":0.666},{"cat":"Seyahat","caption":"Doğu Türkistan, 2011","thumb":"images/thumbs/seyahat--dogu-turkistan-2011.jpg","full":"images/full/seyahat--dogu-turkistan-2011.jpg","r":0.663},{"cat":"Şehirler","caption":"İstanbul, Üç Köprü, 2023","thumb":"images/thumbs/havacilik--istanbul-uc-kopru-2023.jpg","full":"images/full/havacilik--istanbul-uc-kopru-2023.jpg","r":0.75,"wide":true},{"cat":"Portre","caption":"Bangkok, Saray İçi","thumb":"images/thumbs/portre--bangkok-saray-ici.jpg","full":"images/full/portre--bangkok-saray-ici.jpg","r":1.502},{"cat":"Portre","caption":"Tayland","thumb":"images/thumbs/portre--tayland.jpg","full":"images/full/portre--tayland.jpg","r":1.502},{"cat":"Havalimanları","caption":"İstanbul Havalimanı, Uçuşa Hazırlık, Gece","thumb":"images/thumbs/havacilik--istanbul-havalimani-ucusa-hazirlik-gece.jpg","full":"images/full/havacilik--istanbul-havalimani-ucusa-hazirlik-gece.jpg","r":0.7},{"cat":"Havadan","caption":"Bulutlar Arasında","thumb":"images/thumbs/havacilik--bulutlar-arasinda.jpg","full":"images/full/havacilik--bulutlar-arasinda.jpg","r":0.666},{"cat":"Havadan","caption":"Bulutlar Arasında","thumb":"images/thumbs/havacilik--bulutlar-arasinda-2.jpg","full":"images/full/havacilik--bulutlar-arasinda-2.jpg","r":0.666},{"cat":"Havalimanları","caption":"İstanbul Havalimanı, Yağmurlu Gün","thumb":"images/thumbs/havacilik--istanbul-havalimani-yagmurlu-gun.jpg","full":"images/full/havacilik--istanbul-havalimani-yagmurlu-gun.jpg","r":0.75},{"cat":"Ay ve Uçak","caption":"Ay ve Uçak Serisi V","thumb":"images/thumbs/ay-ve-ucak--ay-ve-ucak-serisi-v.jpg","full":"images/full/ay-ve-ucak--ay-ve-ucak-serisi-v.jpg","r":0.7},{"cat":"Ay ve Uçak","caption":"Ay ve Uçak Serisi VI","thumb":"images/thumbs/ay-ve-ucak--ay-ve-ucak-serisi-vi.jpg","full":"images/full/ay-ve-ucak--ay-ve-ucak-serisi-vi.jpg","r":0.7},{"cat":"Ay ve Uçak","caption":"Ay ve Uçak Serisi VII","thumb":"images/thumbs/ay-ve-ucak--ay-ve-ucak-serisi-vii.jpg","full":"images/full/ay-ve-ucak--ay-ve-ucak-serisi-vii.jpg","r":0.7},{"cat":"Ağaçlar","caption":"Yosunlu Ağaç Gövdesi","thumb":"images/thumbs/agaclar--yosunlu-agac-govdesi.jpg","full":"images/full/agaclar--yosunlu-agac-govdesi.jpg","r":0.75},{"cat":"Şehirler","caption":"Bombay, 2011","thumb":"images/thumbs/seyahat--bombay-2011.jpg","full":"images/full/seyahat--bombay-2011.jpg","r":0.589},{"cat":"Hayvanlar","caption":"Güney Afrika, Eland","thumb":"images/thumbs/seyahat--guney-afrika-eland.jpg","full":"images/full/seyahat--guney-afrika-eland.jpg","r":0.666},{"cat":"Hayvanlar","caption":"Mombasa, Kenya","thumb":"images/thumbs/seyahat--mombasa-kenya.jpg","full":"images/full/seyahat--mombasa-kenya.jpg","r":0.666},{"cat":"Hayvanlar","caption":"Ulan Batur, Kartal","thumb":"images/thumbs/portre--ulan-batur-kartal.jpg","full":"images/full/portre--ulan-batur-kartal.jpg","r":0.666}]</script>
-<script src="js/gallery.js?v=11"></script>
+<script src="js/gallery.js?v=26"></script>
 
 </body>
 </html>
