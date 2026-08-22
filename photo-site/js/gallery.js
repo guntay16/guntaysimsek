@@ -197,6 +197,8 @@ function init(ITEMS){
   }
   wireModal('konseptModal', 'konseptBtn', 'konseptClose');
   wireModal('hakkindaModal', 'hakkindaBtn', 'hakkindaClose');
+  wireModal('degerlendirmelerModal', 'degerlendirmelerBtn', 'degerlendirmelerClose');
+  wireModal('medyaModal', 'medyaBtn', 'medyaClose');
 
   document.querySelectorAll('.series-tile, .series-hero').forEach(tile=>{
     tile.addEventListener('click', ()=>{
