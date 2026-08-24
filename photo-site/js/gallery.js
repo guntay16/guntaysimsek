@@ -3,7 +3,35 @@ async function loadPhotos(){
   return JSON.parse(el.textContent);
 }
 
+function pictureHTML(item, kind, sizesAttr, className, extraAttrs){
+  // kind: 'thumb' uses thumb as 1x / full as ~1.43x; 'full' uses full only (lightbox)
+  const base = item.thumb.replace(/\.jpg$/, '');
+  const fullBase = item.full.replace(/\.jpg$/, '');
+  const w = kind === 'thumb' ? item.w : item.fw;
+  const h = kind === 'thumb' ? item.h : item.fh;
+  let avifSrcset, webpSrcset, jpgSrcset, jpgSrc;
+  if(kind === 'thumb'){
+    avifSrcset = `${base}.avif ${item.w}w, ${fullBase}.avif ${item.fw}w`;
+    webpSrcset = `${base}.webp ${item.w}w, ${fullBase}.webp ${item.fw}w`;
+    jpgSrcset  = `${item.thumb} ${item.w}w, ${item.full} ${item.fw}w`;
+    jpgSrc = item.thumb;
+  } else {
+    avifSrcset = `${fullBase}.avif ${item.fw}w`;
+    webpSrcset = `${fullBase}.webp ${item.fw}w`;
+    jpgSrcset  = `${item.full} ${item.fw}w`;
+    jpgSrc = item.full;
+  }
+  return `<picture>
+      <source type="image/avif" srcset="${avifSrcset}"${sizesAttr}>
+      <source type="image/webp" srcset="${webpSrcset}"${sizesAttr}>
+      <img class="${className}" src="${jpgSrc}" srcset="${jpgSrcset}"${sizesAttr} width="${w}" height="${h}" alt="${item.caption}" ${extraAttrs||''}>
+    </picture>`;
+}
+
 function init(ITEMS){
+  const bySlug = {};
+  ITEMS.forEach(i=>{ bySlug[i.slug] = i; });
+
   const CATEGORY_ORDER = ["Ay ve Uçak","Havalimanları","Havadan","Hava Gösterisi","Hayvanlar","Portre","Ağaçlar","Şehirler","Seyahat"];
   const CATEGORY_LABELS_EN = {
     "Tümü":"All","Ay ve Uçak":"Moon and Aircraft","Havalimanları":"Airports","Havadan":"Aerial",
@@ -22,8 +50,10 @@ function init(ITEMS){
     filtersEl.innerHTML = "";
     categories.forEach(cat=>{
       const btn = document.createElement('button');
-      btn.className = 'filter-btn' + (cat===activeCat ? ' active' : '');
+      const isActive = cat===activeCat;
+      btn.className = 'filter-btn' + (isActive ? ' active' : '');
       btn.textContent = catLabel(cat);
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
       btn.onclick = ()=>{ activeCat = cat; renderFilters(); renderGrid(); };
       filtersEl.appendChild(btn);
     });
@@ -32,9 +62,10 @@ function init(ITEMS){
   function buildTile(item, idx){
     const tile = document.createElement('div');
     tile.className = 'tile' + (item.wide ? ' tile-wide' : '');
-    tile.innerHTML = `<img src="${item.thumb}" alt="${item.caption}" loading="lazy">
+    const sizes = ' sizes="(max-width:639px) 100vw, (max-width:899px) 50vw, (max-width:1199px) 33vw, 25vw"';
+    tile.innerHTML = `${pictureHTML(item, 'thumb', sizes, '', 'loading="lazy"')}
       <div class="tile-cap"><span class="tile-cat">${catLabel(item.cat)}</span>${item.caption}</div>`;
-    tile.onclick = ()=> openLightbox(idx);
+    tile.onclick = ()=> { lightboxItems = visibleItems; openLightbox(visibleItems.indexOf(item)); };
     return tile;
   }
 
@@ -136,38 +167,59 @@ function init(ITEMS){
   }
 
   const lightbox = document.getElementById('lightbox');
-  const lbImg = document.getElementById('lbImg');
+  const lbPictureWrap = document.getElementById('lbPictureWrap');
   const lbCat = document.getElementById('lbCat');
   const lbCaption = document.getElementById('lbCaption');
   const lbShareX = document.getElementById('lbShareX');
   const lbShareWa = document.getElementById('lbShareWa');
   const lbCopyLink = document.getElementById('lbCopyLink');
   let currentIdx = 0;
+  let lightboxItems = [];
+  let restoreHash = '';
 
   function openLightbox(idx){
     currentIdx = idx;
     showCurrent();
     lightbox.classList.add('open');
+    lightbox.removeAttribute('aria-hidden');
+    document.getElementById('lbClose').focus();
+    document.addEventListener('keydown', trapFocus);
+  }
+  function closeLightbox(){
+    lightbox.classList.remove('open');
+    lightbox.setAttribute('aria-hidden', 'true');
+    document.removeEventListener('keydown', trapFocus);
+    if(location.hash && bySlug[location.hash.slice(1)]){
+      history.replaceState(null, '', location.pathname);
+    }
+  }
+  function trapFocus(e){
+    if(e.key !== 'Tab') return;
+    const focusables = lightbox.querySelectorAll('button, a[href]');
+    const first = focusables[0], last = focusables[focusables.length-1];
+    if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
   }
   function showCurrent(){
-    const item = visibleItems[currentIdx];
-    lbImg.src = item.full;
+    const item = lightboxItems[currentIdx];
+    lbPictureWrap.innerHTML = pictureHTML(item, 'full', '', 'lb-img', 'id="lbImg"');
     lbCat.textContent = item.cat;
     lbCaption.textContent = item.caption;
 
-    const shareUrl = location.origin + location.pathname;
+    history.replaceState(null, '', '#' + item.slug);
+    const shareUrl = location.origin + location.pathname + '#' + item.slug;
     const shareText = item.caption + ' — Güntay Şimşek Fotoğraf';
     lbShareX.href = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText) + '&url=' + encodeURIComponent(shareUrl);
     lbShareWa.href = 'https://wa.me/?text=' + encodeURIComponent(shareText + ' ' + shareUrl);
     lbCopyLink.dataset.url = shareUrl;
   }
-  document.getElementById('lbClose').onclick = ()=> lightbox.classList.remove('open');
-  document.getElementById('lbPrev').onclick = ()=>{ currentIdx = (currentIdx-1+visibleItems.length)%visibleItems.length; showCurrent(); };
-  document.getElementById('lbNext').onclick = ()=>{ currentIdx = (currentIdx+1)%visibleItems.length; showCurrent(); };
-  lightbox.addEventListener('click', (e)=>{ if(e.target===lightbox) lightbox.classList.remove('open'); });
+  document.getElementById('lbClose').onclick = closeLightbox;
+  document.getElementById('lbPrev').onclick = ()=>{ currentIdx = (currentIdx-1+lightboxItems.length)%lightboxItems.length; showCurrent(); };
+  document.getElementById('lbNext').onclick = ()=>{ currentIdx = (currentIdx+1)%lightboxItems.length; showCurrent(); };
+  lightbox.addEventListener('click', (e)=>{ if(e.target===lightbox) closeLightbox(); });
   document.addEventListener('keydown', (e)=>{
     if(!lightbox.classList.contains('open')) return;
-    if(e.key==='Escape') lightbox.classList.remove('open');
+    if(e.key==='Escape') closeLightbox();
     if(e.key==='ArrowLeft') document.getElementById('lbPrev').click();
     if(e.key==='ArrowRight') document.getElementById('lbNext').click();
   });
@@ -184,15 +236,46 @@ function init(ITEMS){
     });
   });
 
+  const MODAL_KEYS = {hakkinda:'hakkindaModal', konsept:'konseptModal', degerlendirmeler:'degerlendirmelerModal', basinda:'medyaModal'};
+  const MODAL_BTNS = {hakkindaModal:'hakkindaBtn', konseptModal:'konseptBtn', degerlendirmelerModal:'degerlendirmelerBtn', medyaModal:'medyaBtn'};
+
+  function openModal(modalId){
+    const modal = document.getElementById(modalId);
+    if(!modal) return;
+    modal.classList.add('open');
+    modal.removeAttribute('aria-hidden');
+    const closeBtn = modal.querySelector('.lb-close');
+    if(closeBtn) closeBtn.focus();
+    const key = Object.keys(MODAL_KEYS).find(k=>MODAL_KEYS[k]===modalId);
+    if(key) history.replaceState(null, '', '#' + key);
+  }
+  function closeModal(modal){
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    if(Object.values(MODAL_KEYS).includes(location.hash.slice(1) ? MODAL_KEYS[location.hash.slice(1)] : null) || MODAL_KEYS[location.hash.slice(1)]){
+      history.replaceState(null, '', location.pathname);
+    }
+  }
+
   function wireModal(modalId, btnId, closeId){
     const modal = document.getElementById(modalId);
     const btn = document.getElementById(btnId);
     if(!modal || !btn) return;
-    btn.onclick = ()=> modal.classList.add('open');
-    document.getElementById(closeId).onclick = ()=> modal.classList.remove('open');
-    modal.addEventListener('click', (e)=>{ if(e.target===modal) modal.classList.remove('open'); });
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    const labelEl = modal.querySelector('.exhibit-label, .press-title');
+    if(labelEl){
+      const labelId = modalId + 'Label';
+      labelEl.id = labelId;
+      modal.setAttribute('aria-labelledby', labelId);
+    }
+    btn.setAttribute('aria-haspopup', 'dialog');
+    btn.onclick = ()=> openModal(modalId);
+    document.getElementById(closeId).setAttribute('aria-label', 'Kapat / Close');
+    document.getElementById(closeId).onclick = ()=> closeModal(modal);
+    modal.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(modal); });
     document.addEventListener('keydown', (e)=>{
-      if(e.key==='Escape') modal.classList.remove('open');
+      if(e.key==='Escape' && modal.classList.contains('open')) closeModal(modal);
     });
   }
   wireModal('konseptModal', 'konseptBtn', 'konseptClose');
@@ -200,19 +283,36 @@ function init(ITEMS){
   wireModal('degerlendirmelerModal', 'degerlendirmelerBtn', 'degerlendirmelerClose');
   wireModal('medyaModal', 'medyaBtn', 'medyaClose');
 
+  document.getElementById('lbClose').setAttribute('aria-label', 'Kapat / Close');
+  document.getElementById('lbPrev').setAttribute('aria-label', 'Önceki fotoğraf / Previous photo');
+  document.getElementById('lbNext').setAttribute('aria-label', 'Sonraki fotoğraf / Next photo');
+  lightbox.setAttribute('role', 'dialog');
+  lightbox.setAttribute('aria-modal', 'true');
+  lightbox.setAttribute('aria-label', 'Fotoğraf büyütme / Photo lightbox');
+
   document.querySelectorAll('.series-tile, .series-hero').forEach(tile=>{
     tile.addEventListener('click', ()=>{
       const caption = tile.dataset.caption;
-      activeCat = 'Ay ve Uçak';
-      renderFilters();
-      renderGrid();
-      const idx = visibleItems.findIndex(i=>i.caption===caption);
+      const seriesItems = ITEMS.filter(i=>i.cat==='Ay ve Uçak');
+      lightboxItems = seriesItems;
+      const idx = seriesItems.findIndex(i=>i.caption===caption);
       openLightbox(idx===-1 ? 0 : idx);
     });
   });
 
   renderFilters();
   renderGrid();
+
+  // Deep-link on load: #<photo-slug> opens the lightbox, #<modal-key> opens a modal
+  const initialHash = location.hash.slice(1);
+  if(initialHash){
+    if(bySlug[initialHash]){
+      lightboxItems = ITEMS;
+      openLightbox(ITEMS.indexOf(bySlug[initialHash]));
+    } else if(MODAL_KEYS[initialHash]){
+      openModal(MODAL_KEYS[initialHash]);
+    }
+  }
 }
 
 loadPhotos().then(init).catch(err=>{
