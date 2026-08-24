@@ -525,8 +525,8 @@ header{
 footer{
   text-align:center;
   padding:26px 20px;
-  font-size:0.68rem;
-  color:var(--bg);
+  font-size:0.75rem;
+  color:var(--ink);
   letter-spacing:0.05em;
   background:var(--anthracite);
   border-top:1px solid var(--line);
@@ -538,9 +538,11 @@ footer{
   flex-wrap:wrap;
   margin-bottom:14px;
 }
-.footer-links{font-size:0.72rem;}
+.footer-links{font-size:0.8rem;}
+.footer-links a{color:var(--ink);text-decoration:none;border-bottom:1px solid transparent;}
+.footer-links a:hover{color:var(--accent);border-bottom-color:var(--accent);}
 .footer-links .contact-label{
-  color:var(--bg);
+  color:var(--ink);
   text-transform:uppercase;
   letter-spacing:0.06em;
   margin-right:6px;
@@ -550,7 +552,7 @@ footer{
   justify-content:center;
   gap:18px;
   margin-bottom:14px;
-  font-size:0.66rem;
+  font-size:0.72rem;
 }
-.legal-links a{color:var(--bg);text-decoration:none;border-bottom:1px solid transparent;}
+.legal-links a{color:var(--ink);text-decoration:none;border-bottom:1px solid transparent;}
 .legal-links a:hover{color:var(--accent);border-bottom-color:var(--accent);}
