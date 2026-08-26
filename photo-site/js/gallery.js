@@ -122,7 +122,9 @@ function init(ITEMS){
     if(normal.length===0) return;
     const gridDiv = document.createElement('div');
     gridDiv.className = 'grid';
-    const n = Math.min(columnCount(), normal.length);
+    // Cap columns so each holds at least ~2 photos - too many thin columns for a small
+    // category leaves one column much shorter than the rest (a visible empty gap below it).
+    const n = Math.max(1, Math.min(columnCount(), normal.length, Math.floor(normal.length/2)));
     const cols = [];
     const colHeights = new Array(n).fill(0);
     for(let i=0;i<n;i++){
@@ -131,7 +133,8 @@ function init(ITEMS){
       cols.push(col);
       gridDiv.appendChild(col);
     }
-    normal.forEach(item=>{
+    const balanced = normal.slice().sort((a,b)=>(b.r||0.75)-(a.r||0.75));
+    balanced.forEach(item=>{
       let shortest = 0;
       for(let i=1;i<n;i++){
         if(colHeights[i] < colHeights[shortest]) shortest = i;
