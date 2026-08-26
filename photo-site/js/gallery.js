@@ -32,11 +32,11 @@ function init(ITEMS){
   const bySlug = {};
   ITEMS.forEach(i=>{ bySlug[i.slug] = i; });
 
-  const CATEGORY_ORDER = ["Ay'la Yolculuk","Havalimanları","Havadan","Hava Gösterisi","Hayvanlar","Portre","Ağaçlar","Şehirler","Seyahat"];
+  const CATEGORY_ORDER = ["Ay'la Yolculuk","Hava Gösterisi","Havadan","Havalimanları","Şehirlerden","Dünya'yı Keşif","Ağaçlar Dünyası","Hayvanlar Alemi","Çağımızın İnsanları"];
   const CATEGORY_LABELS_EN = {
-    "Tümü":"All","Ay'la Yolculuk":"Journey with the Moon","Havalimanları":"Airports","Havadan":"Aerial",
-    "Hava Gösterisi":"Air Show","Hayvanlar":"Animals","Portre":"Portrait","Ağaçlar":"Trees",
-    "Şehirler":"Cities","Seyahat":"Travel"
+    "Tümü":"All","Ay'la Yolculuk":"Journey with the Moon","Hava Gösterisi":"Air Show","Havadan":"Aerial",
+    "Havalimanları":"Airports","Şehirlerden":"From the Cities","Dünya'yı Keşif":"Discovering the World",
+    "Ağaçlar Dünyası":"World of Trees","Hayvanlar Alemi":"Animal Kingdom","Çağımızın İnsanları":"People of Our Time"
   };
   function catLabel(cat){
     return CATEGORY_LABELS_EN[cat] ? cat + ' / ' + CATEGORY_LABELS_EN[cat] : cat;
@@ -146,7 +146,7 @@ function init(ITEMS){
   function renderGrid(){
     gridEl.innerHTML = "";
     if(activeCat === "Tümü"){
-      const tumuCategories = CATEGORY_ORDER.filter(cat=>cat!=='Ay ve Uçak');
+      const tumuCategories = CATEGORY_ORDER.filter(cat=>cat!=="Ay'la Yolculuk");
       visibleItems = tumuCategories.flatMap(cat=>ITEMS.filter(i=>i.cat===cat));
       tumuCategories.forEach(cat=>{
         const group = ITEMS.filter(i=>i.cat===cat);
@@ -293,7 +293,7 @@ function init(ITEMS){
   document.querySelectorAll('.series-tile, .series-hero').forEach(tile=>{
     tile.addEventListener('click', ()=>{
       const caption = tile.dataset.caption;
-      const seriesItems = ITEMS.filter(i=>i.cat==='Ay ve Uçak');
+      const seriesItems = ITEMS.filter(i=>i.cat==="Ay'la Yolculuk");
       lightboxItems = seriesItems;
       const idx = seriesItems.findIndex(i=>i.caption===caption);
       openLightbox(idx===-1 ? 0 : idx);
