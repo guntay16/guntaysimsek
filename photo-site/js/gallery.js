@@ -122,9 +122,7 @@ function init(ITEMS){
     if(normal.length===0) return;
     const gridDiv = document.createElement('div');
     gridDiv.className = 'grid';
-    // Cap columns so each holds at least ~2 photos - too many thin columns for a small
-    // category leaves one column much shorter than the rest (a visible empty gap below it).
-    const n = Math.max(1, Math.min(columnCount(), normal.length, Math.floor(normal.length/2)));
+    const n = Math.min(columnCount(), normal.length);
     const cols = [];
     const colHeights = new Array(n).fill(0);
     for(let i=0;i<n;i++){
