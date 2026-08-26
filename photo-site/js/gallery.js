@@ -32,9 +32,9 @@ function init(ITEMS){
   const bySlug = {};
   ITEMS.forEach(i=>{ bySlug[i.slug] = i; });
 
-  const CATEGORY_ORDER = ["Ay ve Uçak","Havalimanları","Havadan","Hava Gösterisi","Hayvanlar","Portre","Ağaçlar","Şehirler","Seyahat"];
+  const CATEGORY_ORDER = ["Ay'la Yolculuk","Havalimanları","Havadan","Hava Gösterisi","Hayvanlar","Portre","Ağaçlar","Şehirler","Seyahat"];
   const CATEGORY_LABELS_EN = {
-    "Tümü":"All","Ay ve Uçak":"Moon and Aircraft","Havalimanları":"Airports","Havadan":"Aerial",
+    "Tümü":"All","Ay'la Yolculuk":"Journey with the Moon","Havalimanları":"Airports","Havadan":"Aerial",
     "Hava Gösterisi":"Air Show","Hayvanlar":"Animals","Portre":"Portrait","Ağaçlar":"Trees",
     "Şehirler":"Cities","Seyahat":"Travel"
   };
