@@ -155,7 +155,7 @@ function init(ITEMS){
         section.className = 'cat-section';
         const heading = document.createElement('h3');
         heading.className = 'cat-heading';
-        heading.textContent = cat;
+        heading.textContent = catLabel(cat);
         section.appendChild(heading);
         renderMasonry(section, group, item=>visibleItems.indexOf(item));
         gridEl.appendChild(section);
