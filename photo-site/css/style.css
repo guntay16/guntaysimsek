@@ -66,19 +66,11 @@ header{
 .exhibit-banner{
   padding:44px 20px 0;
   text-align:center;
-  background:var(--anthracite);
-  color:var(--bg);
+  background:var(--bg);
+  border-bottom:1px solid var(--line);
 }
 .exhibit-banner .exhibit-inner{max-width:760px;}
-.exhibit-banner .exhibit-label{color:var(--bg);opacity:0.75;}
-.exhibit-banner .exhibit-label-en{color:var(--bg);opacity:0.55;}
-.exhibit-banner .exhibit-subtitle{color:var(--bg);opacity:0.85;}
-.exhibit-banner .exhibit-subtitle-en{color:var(--bg);opacity:0.65;}
-.exhibit-banner .exhibit-meta{
-  color:var(--bg);
-  opacity:0.75;
-  border-bottom:1px solid rgba(10,17,48,0.25);
-}
+.exhibit-banner .exhibit-meta{border-bottom:none;margin-bottom:0;padding-bottom:32px;}
 .exhibit-label{
   font-size:0.68rem;
   letter-spacing:0.14em;
