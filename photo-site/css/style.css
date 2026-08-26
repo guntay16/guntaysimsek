@@ -63,6 +63,22 @@ header{
   border-bottom:1px solid var(--line);
 }
 .exhibit-inner{max-width:1100px;margin:0 auto;}
+.exhibit-banner{
+  padding:44px 20px 0;
+  text-align:center;
+  background:var(--anthracite);
+  color:var(--bg);
+}
+.exhibit-banner .exhibit-inner{max-width:760px;}
+.exhibit-banner .exhibit-label{color:var(--bg);opacity:0.75;}
+.exhibit-banner .exhibit-label-en{color:var(--bg);opacity:0.55;}
+.exhibit-banner .exhibit-subtitle{color:var(--bg);opacity:0.85;}
+.exhibit-banner .exhibit-subtitle-en{color:var(--bg);opacity:0.65;}
+.exhibit-banner .exhibit-meta{
+  color:var(--bg);
+  opacity:0.75;
+  border-bottom:1px solid rgba(10,17,48,0.25);
+}
 .exhibit-label{
   font-size:0.68rem;
   letter-spacing:0.14em;
