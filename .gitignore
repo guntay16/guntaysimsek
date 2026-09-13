@@ -2,3 +2,5 @@
 Thumbs.db
 *.log
 .netlify/
+__pycache__/
+*.pyc
