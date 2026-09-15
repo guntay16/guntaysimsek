@@ -1,0 +1,38 @@
+name: Son Köşe Yazıları güncelle
+
+on:
+  schedule:
+    # Her gün 06:30 UTC'de Habertürk yazar arşivini kontrol eder. Yeni bir
+    # yazı yoksa hiçbir şey değiştirmez.
+    - cron: '30 6 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  update-kose-yazilari:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Update köşe yazıları
+        run: python3 scripts/update_kose_yazilari.py
+
+      - name: Commit and push if changed
+        run: |
+          if git diff --quiet -- main-site/index.html main-site/kose-yazilari/index.html; then
+            echo "Degisiklik yok, commit atlanıyor."
+            exit 0
+          fi
+          git config user.name "kose-yazilari-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add main-site/index.html main-site/kose-yazilari/index.html
+          git commit -m "Son Köşe Yazıları bölümünü otomatik güncelle (Habertürk)"
+          git push
