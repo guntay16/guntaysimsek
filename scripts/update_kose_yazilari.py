@@ -12,6 +12,13 @@ Kural: sadece Habertürk'ün kendi başlığı, kendi tarihi, kendi linki ve
 kendi özet metninden (og:description) türetilen tek cümlelik özet
 kullanılır - uydurma içerik yok.
 
+Öne çıkan (featured) kutu için ayrıca: eğer yazı Habertürk'te kendi içinde
+birden fazla alt başlığa (h3) bölünmüşse - yani tek bir konu değil, birkaç
+ayrı konuyu ele alıyorsa - her alt başlık kendi kısa özetiyle ayrı bir
+madde olarak gösterilir (col-featured-points). Yazı tek parça/tek konuysa
+(alt başlık yoksa) sadece tek paragraflık lede metni kullanılır, madde
+listesi eklenmez.
+
 Calisma mantigi:
   1) Arşiv sayfasından yazı listesini (id, başlık, tarih) yeniden-eskiye
      sırayla çıkar.
@@ -90,15 +97,18 @@ def strip_tags(raw: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def og_description(article_url: str) -> str:
-    page = fetch(article_url)
+def extract_og_description(page_html: str) -> str:
     m = re.search(
         r'<meta[^>]+property=["\']og:description["\'][^>]+content=["\']([^"\']+)["\']',
-        page,
+        page_html,
     )
     if not m:
         return ""
     return html.unescape(m.group(1))
+
+
+def og_description(article_url: str) -> str:
+    return extract_og_description(fetch(article_url))
 
 
 def first_sentence(text: str, max_len: int = 260) -> str:
@@ -107,6 +117,40 @@ def first_sentence(text: str, max_len: int = 260) -> str:
     if m:
         return m.group(1).strip()
     return (text[:max_len].rsplit(" ", 1)[0] + "…") if text else ""
+
+
+POINTS_STOP_MARKER = "Diğer Yazılar"
+
+
+def extract_points(article_html: str, max_points: int = 4):
+    """Yazı Habertürk'te birden fazla alt başlığa (h3) bölünmüşse, her
+    alt başlığı kendi kısa özetiyle (o başlıktan sonraki ilk paragrafın
+    ilk cümlesi) birlikte döndürür. Alt başlık yoksa boş liste döner ve
+    featured kutusu tek paragraflık lede ile yetinir."""
+    body = article_html.split(POINTS_STOP_MARKER, 1)[0]
+    points = []
+    for chunk in body.split("<h3")[1:]:
+        close = chunk.find("</h3>")
+        if close == -1:
+            continue
+        # h3 acilis etiketinin kalan kismini (ör. class="...") atla
+        tag_end = chunk.find(">")
+        if tag_end == -1 or tag_end > close:
+            continue
+        heading = strip_tags(chunk[tag_end + 1: close])
+        if not heading:
+            continue
+        rest = chunk[close + 5: close + 5 + 2000]
+        pm = re.search(r"<p[^>]*>(.*?)</p>", rest, re.DOTALL)
+        if not pm:
+            continue
+        summary = first_sentence(html.unescape(pm.group(1)))
+        if not summary:
+            continue
+        points.append({"heading": heading, "summary": summary})
+        if len(points) >= max_points:
+            break
+    return points
 
 
 def parse_archive(archive_html: str):
@@ -154,13 +198,25 @@ def build_list_item(item: dict) -> str:
     )
 
 
+def build_points_list(points: list) -> str:
+    if not points:
+        return ""
+    lines = "\n".join(
+        f'        <li><strong>{esc(p["heading"])}:</strong> {esc(p["summary"])}</li>'
+        for p in points
+    )
+    return f'      <ul class="col-featured-points">\n{lines}\n      </ul>\n'
+
+
 def build_featured(item: dict) -> str:
     title = esc(item["title"])
+    points_html = build_points_list(item.get("points") or [])
     return (
         '<div class="col-featured">\n'
         f'      <span class="col-date">{item["date"]}</span>\n'
         f'      <h3 class="col-featured-title"><a href="{item["url"]}" target="_blank" rel="noopener">{title}</a></h3>\n'
         f'      <p class="col-featured-lede">{esc(item["excerpt"])}</p>\n'
+        f'{points_html}'
         f'      <a class="section-more" href="{item["url"]}" target="_blank" rel="noopener">Yazının tamamı → Habertürk</a>\n'
         f'{share_row(item["title"], item["url"], "      ")}\n'
         '    </div>'
@@ -240,13 +296,16 @@ def main() -> int:
 
     new_items = []
     for art in new_articles:
+        excerpt = art["title"]
+        points = []
         try:
-            desc = og_description(art["url"])
+            page_html = fetch(art["url"])
+            desc = extract_og_description(page_html)
             excerpt = first_sentence(desc) or art["title"]
+            points = extract_points(page_html)
         except Exception as exc:
-            print(f"Uyari: özet alınamadı ({art['url']}): {exc}")
-            excerpt = art["title"]
-        new_items.append({**art, "excerpt": excerpt})
+            print(f"Uyari: yazı sayfası okunamadı ({art['url']}): {exc}")
+        new_items.append({**art, "excerpt": excerpt, "points": points})
 
     ok_archive = update_archive_page(new_items)
     ok_home = update_homepage(new_items)
