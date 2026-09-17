@@ -60,6 +60,16 @@ ARTICLE_LIST_RE = re.compile(
 
 EXISTING_ID_RE = re.compile(r"ozel-icerikler/guntay-simsek-1019/(\d+)-")
 
+# Arşiv sayfasındaki mevcut <li class="col-item">...</li> bloklarını,
+# tarihiyle birlikte tek tek yakalar (yeniden ekleme sırasında tüm liste
+# gerçek tarihe göre yeniden sıralanabilsin diye).
+ENTRY_RE = re.compile(
+    r'(<li class="col-item">\s*<span class="col-date">([^<]+)</span>.*?</li>)',
+    re.DOTALL,
+)
+
+LIST_BLOCK_RE = re.compile(r'<ul class="col-list">\n(.*?)\n    </ul>', re.DOTALL)
+
 SECTION_RE = re.compile(
     r'<div class="col-featured">.*?'
     r'<a class="section-more" href="kose-yazilari/">Tüm Köşe Yazıları →</a>',
@@ -224,51 +234,87 @@ def build_featured(item: dict) -> str:
 
 
 def update_archive_page(new_items: list) -> bool:
+    """Yeni yazilari arsive ekler ve TUM listeyi (eskiler + yeniler) gercek
+    tarihe gore yeniden buyukten-kucuge sıralar. Sadece en basa eklemek,
+    daha once eksik kalmis eski bir yazi (backlog) tespit edildiginde onu
+    yanlislikla en guncel yaziymis gibi goruntuler - bu yuzden her
+    calistirmada tum liste tarihe gore yeniden kuruluyor."""
     content = ARCHIVE_HTML.read_text(encoding="utf-8")
-    anchor = '<ul class="col-list">\n'
-    idx = content.find(anchor)
-    if idx == -1:
+    match = LIST_BLOCK_RE.search(content)
+    if not match:
         print("Hata: kose-yazilari/index.html icinde col-list bulunamadi.")
         return False
-    insert_at = idx + len(anchor)
-    new_html = "\n".join(build_list_item(it) for it in new_items) + "\n"
-    content = content[:insert_at] + new_html + content[insert_at:]
+    existing_entries = [
+        (m.group(2).strip(), m.group(1)) for m in ENTRY_RE.finditer(match.group(1))
+    ]
+    new_entries = [(it["date"], build_list_item(it)) for it in new_items]
+    all_entries = existing_entries + new_entries
+    all_entries.sort(key=lambda e: e[0], reverse=True)
+    normalized_blocks = [
+        block if block.startswith("      <li") else "      " + block
+        for _, block in all_entries
+    ]
+    new_list_html = "\n".join(normalized_blocks)
+    content = content[: match.start(1)] + new_list_html + content[match.end(1):]
     ARCHIVE_HTML.write_text(content, encoding="utf-8")
     return True
 
 
 def update_homepage(new_items: list) -> bool:
+    """Anasayfadaki 'Son Köşe Yazıları' önizlemesini, GÜNCEL VE TAM ARŞİV
+    dosyasından (kose-yazilari/index.html - bu fonksiyon her zaman
+    update_archive_page'den SONRA çağrılmalı) türetir. Anasayfadaki eski
+    kutunun kendi içeriğine güvenilmez: arşiv tek doğruluk kaynağıdır,
+    böylece daha önce eksik kalmış eski bir yazı (backlog) tespit edilip
+    arşive eklendiğinde bile, gerçekten en güncel olan yazı anasayfada
+    yanlışlıkla ikinci plana düşmez.
+    """
+    archive_content = ARCHIVE_HTML.read_text(encoding="utf-8")
+    entries = [
+        {
+            "date": m.group(1).strip(),
+            "url": m.group(2),
+            "title": html.unescape(m.group(3)),
+            "excerpt": html.unescape(m.group(4)),
+        }
+        for m in OLD_LIST_ITEM_RE.finditer(archive_content)
+    ]
+    if not entries:
+        print("Hata: kose-yazilari/index.html icinde hic yazi bulunamadi.")
+        return False
+
+    # entries zaten update_archive_page tarafindan tarihe gore siralanmis
+    # durumda (buyukten kucuge); yine de garanti olsun diye tekrar sirala.
+    entries.sort(key=lambda it: it["date"], reverse=True)
+    top3 = entries[:3]
+
+    new_by_url = {it["url"]: it for it in new_items}
+    featured = top3[0]
+    if featured["url"] in new_by_url:
+        featured = new_by_url[featured["url"]]
+    elif "points" not in featured:
+        # Featured slotuna cikan yazi bu calistirmada yeni eklenmemis
+        # (ör. daha once eksik kalmis, arsive simdi eklenen bir yazi bu
+        # calistirmada featured olmadi ama ileride olabilir) - alt baslik
+        # kontrolu icin sayfasini tazeden okuyalim.
+        try:
+            page_html = fetch(featured["url"])
+            featured = {
+                **featured,
+                "excerpt": first_sentence(extract_og_description(page_html)) or featured["excerpt"],
+                "points": extract_points(page_html),
+            }
+        except Exception as exc:
+            print(f"Uyari: featured yazi icin sayfa tazelenemedi ({featured['url']}): {exc}")
+            featured = {**featured, "points": []}
+
+    featured_html = build_featured(featured)
+    list_items_html = "\n".join(build_list_item(it) for it in top3[1:3])
     content = INDEX_HTML.read_text(encoding="utf-8")
     match = SECTION_RE.search(content)
     if not match:
         print("Hata: main-site/index.html icinde 'Son Köşe Yazıları' bölümü bulunamadi.")
         return False
-    old_section = match.group(0)
-
-    old_items = []
-    fm = OLD_FEATURED_RE.search(old_section)
-    if fm:
-        old_items.append({
-            "date": fm.group(1).strip(),
-            "url": fm.group(2),
-            "title": html.unescape(fm.group(3)),
-            "excerpt": html.unescape(fm.group(4)),
-        })
-    for lm in OLD_LIST_ITEM_RE.finditer(old_section):
-        old_items.append({
-            "date": lm.group(1).strip(),
-            "url": lm.group(2),
-            "title": html.unescape(lm.group(3)),
-            "excerpt": html.unescape(lm.group(4)),
-        })
-
-    combined = new_items + old_items
-    top3 = combined[:3]
-    if not top3:
-        return False
-
-    featured_html = build_featured(top3[0])
-    list_items_html = "\n".join(build_list_item(it) for it in top3[1:3])
     new_section = (
         f"{featured_html}\n\n"
         f'    <ul class="col-list">\n{list_items_html}\n    </ul>\n'
