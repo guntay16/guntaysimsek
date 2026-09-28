@@ -33,6 +33,7 @@ Her pazartesi GitHub Actions tarafından çalıştırılır (bkz.
 import html
 import re
 import sys
+from datetime import date
 from pathlib import Path
 from urllib.parse import quote
 from urllib.request import Request, urlopen
@@ -43,6 +44,14 @@ TV_HTML = REPO_ROOT / "main-site" / "televizyon" / "index.html"
 
 PROGRAM_URL = "https://tv.haberturk.com/program/airport/147"
 UA = "Mozilla/5.0 (compatible; guntaysimsek-airport-bot/1.0)"
+
+# Airport her Pazar 12:15'te yayinlaniyor, bu script her Pazartesi
+# calisiyor; en yeni bilinen bolum bundan cok daha eskiyse (ör. iki
+# haftadan fazla) bu genelde "bu hafta bolum yok" degil, tv.haberturk.com
+# sayfa yapisinin degisip script'in artik hicbir yeni bolumu taniyamadigi
+# anlamina gelir - 2026 Eylul'deki iki haftalik sessiz aksakligin bir
+# daha fark edilmeden tekrarlanmamasi icin bu durum acik hata sayilir.
+STALE_AFTER_DAYS = 10
 
 TAG_RE = re.compile(r"<a\b[^>]*>")
 HREF_RE = re.compile(r'href="([^"]+)"')
@@ -60,6 +69,7 @@ TR_MONTHS = {
 }
 
 EXISTING_ID_RE = re.compile(r"video/programlar/izle/airport-[^\"]+/(\d+)\"")
+EXISTING_DATE_RE = re.compile(r'<span class="tv-ep-date">(\d{4})\.(\d{2})\.(\d{2})</span>')
 
 CMS_DESC_RE = re.compile(
     r'<div class="cms-container">\s*<p><span>(.*?)</span></p>', re.DOTALL
@@ -196,7 +206,20 @@ def main() -> int:
 
     new_episodes = [e for e in episodes if e["id"] not in existing_ids]
     if not new_episodes:
-        print("Zaten güncel, yeni Airport bölümü yok.")
+        date_matches = EXISTING_DATE_RE.findall(known_content)
+        if not date_matches:
+            print("Uyari: televizyon/index.html icinde hic bolum tarihi bulunamadi.")
+            return 0
+        newest = max(date(int(y), int(m), int(d)) for y, m, d in date_matches)
+        age_days = (date.today() - newest).days
+        if age_days > STALE_AFTER_DAYS:
+            print(f"Hata: sitedeki en yeni Airport bölümü {age_days} gündür güncellenmedi "
+                  f"(son bilinen bölüm: {newest.isoformat()}). tv.haberturk.com'daki program "
+                  f"sayfası ({PROGRAM_URL}) tarandı ama hiç yeni bölüm bulunamadı - sayfa yapısı "
+                  "değişmiş olabilir, kontrol gerekiyor.")
+            return 1
+        print(f"Zaten güncel, yeni Airport bölümü yok (son bölüm {age_days} gün önce, "
+              f"eşik {STALE_AFTER_DAYS} gün).")
         return 0
 
     # en eskisinden en yenisine dogru eklemek, iki dosyada da en basa

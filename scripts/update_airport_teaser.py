@@ -38,6 +38,7 @@ import io
 import re
 import sys
 import xml.etree.ElementTree as ET
+from datetime import date
 from pathlib import Path
 from urllib.request import Request, urlopen
 
@@ -47,6 +48,14 @@ IMAGES_DIR = REPO_ROOT / "main-site" / "images"
 FEED_URL = "https://haber.aero/feed/"
 UA = "Mozilla/5.0 (compatible; guntaysimsek-airport-teaser-bot/1.0)"
 MAX_CONTENT_SCAN = 20
+
+# haber.aero bu tanıtımı genelde haftada bir (cuma/cumartesi) yayınlıyor;
+# bu esiğin cok asilmasi (ör. iki haftadan fazla hicbir guncelleme
+# bulunamamasi) genelde haber.aero'nun sayfa yapisinin degistigi ve
+# script'in artik hicbir seyi taniyamadigi anlamina gelir - gercek "bu
+# hafta henuz yayinlanmadi" durumundan boyle ayirt edilir.
+STALE_AFTER_DAYS = 12
+UPDATED_MARKER_RE = re.compile(r"<!-- airport-teaser-updated: (\d{4}-\d{2}-\d{2}) -->\n *")
 
 GENERIC_PROMO_RE = re.compile(
     r"Airport,?\s+en\s+özel\s+konu\s+(?:ve\s+)?konuklar[ıi]yla\s+"
@@ -112,6 +121,7 @@ def save_resized_image(image_bytes: bytes, dest: Path, max_width: int = 900) -> 
 
 
 TEASER_BLOCK_RE = re.compile(
+    r'(?:<!-- airport-teaser-updated: \d{4}-\d{2}-\d{2} -->\n *)?'
     r'<a class="airport-teaser" href="[^"]*" target="_blank" rel="noopener">.*?</a>',
     re.DOTALL,
 )
@@ -119,7 +129,8 @@ TEASER_BLOCK_RE = re.compile(
 
 def build_teaser_block(href: str, img_src: str, alt: str, title: str, desc: str) -> str:
     return (
-        f'<a class="airport-teaser" href="{href}" target="_blank" rel="noopener">\n'
+        f'<!-- airport-teaser-updated: {date.today().isoformat()} -->\n'
+        f'    <a class="airport-teaser" href="{href}" target="_blank" rel="noopener">\n'
         f'      <div class="airport-teaser-photo"><img src="{img_src}" alt="{alt}"></div>\n'
         f'      <div class="airport-teaser-body">\n'
         f'        <span class="airport-teaser-label">Bu Hafta Airport\'ta</span>\n'
@@ -205,6 +216,31 @@ def apply_update(index_content: str, existing_match, link: str, title: str, desc
     return new_block
 
 
+def staleness_check(existing_match) -> int:
+    """Ne dedicated ne de genel tanitim haberi bulunamadiginda cagrilir.
+    Kutu normalden fazla eskimisse (bkz. STALE_AFTER_DAYS) bunu sessiz bir
+    basari degil, acik bir hata olarak bildirir - boylece haber.aero'nun
+    sayfa yapisi degisip script korlestiginde is akisi kirmizi yanar ve
+    GitHub bunu e-postayla bildirir (2026-09'daki Airport bolum
+    aksakligindaki gibi haftalarca sessiz kalinmasin diye)."""
+    marker = UPDATED_MARKER_RE.match(existing_match.group(0))
+    if not marker:
+        print("Uyari: mevcut kutuda tarih damgasi yok (eski format) - "
+              "bir sonraki basarili guncellemede eklenecek, simdilik atlaniyor.")
+        return 0
+    last_updated = date.fromisoformat(marker.group(1))
+    age_days = (date.today() - last_updated).days
+    if age_days > STALE_AFTER_DAYS:
+        print(f"Hata: 'Bu Hafta Airport'ta' kutusu {age_days} gündür güncellenmedi "
+              f"(son güncelleme: {last_updated}). haber.aero'da ne dedicated bir "
+              "'Airport'ta bu hafta' haberi ne de genel tanıtım cümlesi bulunamadı - "
+              "haber.aero sayfa yapısı değişmiş olabilir, kontrol gerekiyor.")
+        return 1
+    print(f"Henüz bu haftanın içeriği yayınlanmamış olabilir (son güncelleme "
+          f"{age_days} gün önce, eşik {STALE_AFTER_DAYS} gün) - normal, bekleniyor.")
+    return 0
+
+
 def main() -> int:
     feed_xml = fetch(FEED_URL)
     index_content = INDEX_HTML.read_text(encoding="utf-8")
@@ -236,7 +272,7 @@ def main() -> int:
     if not promo_item:
         print("Uyari: haber.aero feed'inde ne dedicated 'Airport'ta bu hafta' haberi "
               "ne de genel tanitim cumlesi bulunamadi.")
-        return 0
+        return staleness_check(existing_match)
 
     new_block = apply_update(
         index_content, existing_match,
