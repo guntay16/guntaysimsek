@@ -12,12 +12,21 @@ Kural: sadece Habertürk'ün kendi başlığı, kendi tarihi, kendi linki ve
 kendi özet metninden (og:description) türetilen tek cümlelik özet
 kullanılır - uydurma içerik yok.
 
-Öne çıkan (featured) kutu için ayrıca: eğer yazı Habertürk'te kendi içinde
-birden fazla alt başlığa (h3) bölünmüşse - yani tek bir konu değil, birkaç
-ayrı konuyu ele alıyorsa - her alt başlık kendi kısa özetiyle ayrı bir
-madde olarak gösterilir (col-featured-points). Yazı tek parça/tek konuysa
-(alt başlık yoksa) sadece tek paragraflık lede metni kullanılır, madde
-listesi eklenmez.
+Öne çıkan (featured) kutu için ayrıca (kalıcı kural, Ekim 2026):
+  - Yazı Habertürk'te birden fazla ara başlığa (h2/h3) bölünmüşse - yani
+    tek bir konu değil, birkaç ayrı konuyu ele alıyorsa - HER ara başlık
+    için ayrı bir alan (col-section kartı) açılır. Günün ana yazısı
+    (başlıksız ilk bölüm) başlıkta kalır: kapak fotoğrafı (og:image) ve
+    kendi özetiyle (col-featured-main). Diğer ara başlıklar onun ALTINDA
+    ayrı kartlar olur; her karta Habertürk'te o başlığın hemen üstünde
+    duran fotoğraf ve o bölümün ilk paragrafından alınan cümleler konur. Fotoğraflar main-site/images/kose/ altına indirilir (hotlink
+    yok).
+  - Yazı tek başlık altında tek bir konuyu ele alıyorsa, yazının önemli
+    bölümleri (baş/orta/son kısımlardan en çok vurgulanan paragraflar)
+    ayrı ayrı madde olarak gösterilir (col-featured-points).
+  - Özet satırı hiçbir zaman başlığın tekrarı olmaz. Yazı sayfası
+    okunamazsa (ör. yayından hemen sonra) sonraki çalıştırmalar eksik
+    kalan featured kutusunu ve arşivdeki başlık-tekrarı özetleri onarır.
 
 Calisma mantigi:
   1) Arşiv sayfasından yazı listesini (id, başlık, tarih) yeniden-eskiye
@@ -102,7 +111,10 @@ def esc(text: str) -> str:
 
 
 def strip_tags(raw: str) -> str:
-    text = re.sub(r"<[^>]+>", " ", raw)
+    # Satir ici vurgu etiketleri bosluksuz silinir ("<strong>Çin</strong>'e"
+    # -> "Çin'e"), digerleri bosluga donusur.
+    text = re.sub(r"</?(?:strong|b|em|i|u|a|span)\b[^>]*>", "", raw)
+    text = re.sub(r"<[^>]+>", " ", text)
     text = html.unescape(text)
     return re.sub(r"\s+", " ", text).strip()
 
@@ -130,37 +142,152 @@ def first_sentence(text: str, max_len: int = 260) -> str:
 
 
 POINTS_STOP_MARKER = "Diğer Yazılar"
+BODY_START_MARKER = 'property="articleBody"'
+IMAGES_DIR = REPO_ROOT / "main-site" / "images" / "kose"
+IMAGES_URL_PREFIX = "images/kose/"
+
+# Habertürk yazı gövdesindeki sıralı öğeler: fotoğraf (widget-image),
+# ara başlık (h2/h3) ve paragraf.
+BODY_TOKEN_RE = re.compile(
+    r'<div class="widget-image[^>]*>\s*<img[^>]*?data-big-src="(?P<img>[^"]+)"'
+    r'|<h(?P<hl>[23])[^>]*>(?P<head>.*?)</h(?P=hl)>'
+    r'|<p[^>]*>(?P<para>.*?)</p>',
+    re.DOTALL,
+)
 
 
-def extract_points(article_html: str, max_points: int = 4):
-    """Yazı Habertürk'te birden fazla alt başlığa (h3) bölünmüşse, her
-    alt başlığı kendi kısa özetiyle (o başlıktan sonraki ilk paragrafın
-    ilk cümlesi) birlikte döndürür. Alt başlık yoksa boş liste döner ve
-    featured kutusu tek paragraflık lede ile yetinir."""
-    body = article_html.split(POINTS_STOP_MARKER, 1)[0]
-    points = []
-    for chunk in body.split("<h3")[1:]:
-        close = chunk.find("</h3>")
-        if close == -1:
-            continue
-        # h3 acilis etiketinin kalan kismini (ör. class="...") atla
-        tag_end = chunk.find(">")
-        if tag_end == -1 or tag_end > close:
-            continue
-        heading = strip_tags(chunk[tag_end + 1: close])
-        if not heading:
-            continue
-        rest = chunk[close + 5: close + 5 + 2000]
-        pm = re.search(r"<p[^>]*>(.*?)</p>", rest, re.DOTALL)
-        if not pm:
-            continue
-        summary = first_sentence(html.unescape(pm.group(1)))
-        if not summary:
-            continue
-        points.append({"heading": heading, "summary": summary})
-        if len(points) >= max_points:
+def extract_og_image(page_html: str) -> str:
+    m = re.search(
+        r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']',
+        page_html,
+    )
+    return html.unescape(m.group(1)) if m else ""
+
+
+def lead_sentences(text: str, max_len: int = 320) -> str:
+    """Paragrafin ilk cumlelerini (toplam max_len karakteri asmadan, en az
+    bir cumle) dondurur - yazarin kendi ifadesi, uydurma yok."""
+    text = strip_tags(text)
+    sentences = re.findall(r".+?[.!?…](?=\s|$)|.+$", text)
+    out = ""
+    for sent in sentences:
+        sent = sent.strip()
+        if out and len(out) + 1 + len(sent) > max_len:
             break
-    return points
+        out = f"{out} {sent}".strip()
+    if len(out) > max_len + 120:
+        out = out[:max_len].rsplit(" ", 1)[0] + "…"
+    return out
+
+
+def article_body(article_html: str) -> str:
+    body = article_html.split(POINTS_STOP_MARKER, 1)[0]
+    start = body.find(BODY_START_MARKER)
+    return body[start:] if start != -1 else body
+
+
+def extract_sections(article_html: str, title: str):
+    """Yazıyı ara başlıklarına göre bölümlere ayırır. Her bölüm: başlık,
+    fotoğraf URL'si (varsa) ve paragrafları. Ara başlıktan önceki ilk
+    bölüm yazının ana başlığını ve kapak fotoğrafını (og:image) alır.
+    Habertürk'te bir ara başlığın fotoğrafı başlığın hemen ÜSTÜNDE durur."""
+    sections = [{"heading": title.strip(), "image": extract_og_image(article_html),
+                 "paras": [], "raw": []}]
+    pending_img = None
+    for m in BODY_TOKEN_RE.finditer(article_body(article_html)):
+        if m.group("img"):
+            pending_img = html.unescape(m.group("img"))
+        elif m.group("head") is not None:
+            heading = strip_tags(m.group("head"))
+            if heading:
+                sections.append({"heading": heading, "image": pending_img,
+                                 "paras": [], "raw": []})
+            pending_img = None
+        else:
+            text = strip_tags(m.group("para"))
+            if not text or set(text) <= set("*-–— "):
+                continue
+            sections[-1]["paras"].append(text)
+            sections[-1]["raw"].append(m.group("para"))
+    return [s for s in sections if s["paras"]]
+
+
+def key_points(paras: list, raws: list, max_points: int = 3):
+    """Tek konulu (ara başlıksız) yazıda önemli bölümleri seçer: ilk
+    paragraf (lede) haric kalanlari bas/orta/son diye esit parçalara böler
+    ve her parçadan en çok vurgulanan (<strong>) paragrafı alır."""
+    rest = list(range(1, len(paras)))
+    if not rest:
+        return []
+    n = min(max_points, len(rest))
+    chunks = [rest[i * len(rest) // n:(i + 1) * len(rest) // n] for i in range(n)]
+    picks = []
+    for chunk in chunks:
+        if chunk:
+            best = max(chunk, key=lambda i: (raws[i].count("<strong"), -i))
+            picks.append(best)
+    return [{"summary": lead_sentences(paras[i], 260)} for i in picks]
+
+
+def safe_image_name(art_id: str, index: int) -> str:
+    return f"{art_id}-{index + 1}.jpg"
+
+
+def download_image(url: str, art_id: str, index: int) -> str:
+    """Fotoğrafı main-site/images/kose/ altına indirir ve sayfada
+    kullanılacak göreli yolu döndürür. Başarısızsa boş string."""
+    if not url:
+        return ""
+    # static.domer.tr gorselleri genislik parametresiyle sunuluyor;
+    # anasayfa karti icin 960px yeterli.
+    url = re.sub(r"/\d+x0$", "/960x0", url)
+    name = safe_image_name(art_id, index)
+    target = IMAGES_DIR / name
+    if not target.exists():
+        try:
+            req = Request(url, headers={"User-Agent": UA})
+            with urlopen(req, timeout=30) as resp:
+                data = resp.read()
+            if len(data) < 2000:
+                return ""
+            IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(data)
+        except Exception as exc:
+            print(f"Uyari: fotograf indirilemedi ({url}): {exc}")
+            return ""
+    return IMAGES_URL_PREFIX + name
+
+
+def analyze_article(page_html: str, art: dict) -> dict:
+    """Yazı sayfasından özet, ara başlık kartları (sections) ve - tek
+    konulu yazıda - önemli bölüm maddelerini (points) çıkarır."""
+    sections = extract_sections(page_html, art["title"])
+    excerpt = first_sentence(extract_og_description(page_html))
+    if (not excerpt or excerpt.strip() == art["title"].strip()) and sections:
+        excerpt = first_sentence(sections[0]["paras"][0])
+    result = {"excerpt": excerpt or art["title"], "sections": [], "points": []}
+    if len(sections) > 1:
+        for idx, sec in enumerate(sections):
+            result["sections"].append({
+                "heading": sec["heading"],
+                "summary": lead_sentences(sec["paras"][0], 420 if idx == 0 else 320),
+                "image": download_image(sec["image"], art["id"], idx),
+            })
+    elif sections:
+        result["points"] = key_points(sections[0]["paras"], sections[0]["raw"])
+    return result
+
+
+def fetch_article(url: str, attempts: int = 3) -> str:
+    last_exc = None
+    for _ in range(attempts):
+        try:
+            page = fetch(url, timeout=30)
+            if BODY_START_MARKER in page:
+                return page
+        except Exception as exc:  # noqa: PERF203
+            last_exc = exc
+    raise RuntimeError(f"yazi govdesi okunamadi: {last_exc}")
 
 
 def parse_archive(archive_html: str):
@@ -209,26 +336,66 @@ def build_list_item(item: dict) -> str:
 
 
 def build_points_list(points: list) -> str:
+    """Tek konulu yazinin onemli bolumleri (madde listesi)."""
     if not points:
         return ""
     lines = "\n".join(
-        f'        <li><strong>{esc(p["heading"])}:</strong> {esc(p["summary"])}</li>'
-        for p in points
+        f'        <li>{esc(p["summary"])}</li>' for p in points
     )
     return f'      <ul class="col-featured-points">\n{lines}\n      </ul>\n'
 
 
+def build_sections(sections: list, url: str) -> str:
+    """Ara basliklara bolunmus yazida her baslik icin ayri kart."""
+    if not sections:
+        return ""
+    cards = []
+    for idx, sec in enumerate(sections, 1):
+        img = (
+            f'          <img src="{sec["image"]}" alt="{html.escape(sec["heading"])}" loading="lazy">\n'
+            if sec.get("image") else ""
+        )
+        cards.append(
+            '        <li class="col-section">\n'
+            f'{img}'
+            f'          <span class="col-section-num">{idx:02d}</span>\n'
+            f'          <h4 class="col-section-title"><a href="{url}" target="_blank" rel="noopener">{esc(sec["heading"])}</a></h4>\n'
+            f'          <p class="col-section-text">{esc(sec["summary"])}</p>\n'
+            '        </li>'
+        )
+    return '      <ul class="col-sections">\n' + "\n".join(cards) + '\n      </ul>\n'
+
+
 def build_featured(item: dict) -> str:
-    title = esc(item["title"])
-    points_html = build_points_list(item.get("points") or [])
+    title = esc(item["title"].strip())
+    sections = item.get("sections") or []
+    if sections:
+        # Gunun ana yazisi baslikta kalir (kendi fotografi ve ozetiyle);
+        # diger ara basliklar onun altinda ayri kartlar olarak yer alir.
+        main = sections[0]
+        img = (
+            f'        <img src="{main["image"]}" alt="{html.escape(main["heading"])}" loading="lazy">\n'
+            if main.get("image") else ""
+        )
+        body_html = (
+            '      <div class="col-featured-main">\n'
+            f'{img}'
+            f'        <p class="col-featured-lede">{esc(main["summary"])}</p>\n'
+            '      </div>\n'
+            f'{build_sections(sections[1:], item["url"])}'
+        )
+    else:
+        body_html = (
+            f'      <p class="col-featured-lede">{esc(item["excerpt"])}</p>\n'
+            f'{build_points_list(item.get("points") or [])}'
+        )
     return (
         '<div class="col-featured">\n'
         f'      <span class="col-date">{item["date"]}</span>\n'
         f'      <h3 class="col-featured-title"><a href="{item["url"]}" target="_blank" rel="noopener">{title}</a></h3>\n'
-        f'      <p class="col-featured-lede">{esc(item["excerpt"])}</p>\n'
-        f'{points_html}'
+        f'{body_html}'
         f'      <a class="section-more" href="{item["url"]}" target="_blank" rel="noopener">Yazının tamamı → Habertürk</a>\n'
-        f'{share_row(item["title"], item["url"], "      ")}\n'
+        f'{share_row(item["title"].strip(), item["url"], "      ")}\n'
         '    </div>'
     )
 
@@ -292,21 +459,16 @@ def update_homepage(new_items: list) -> bool:
     featured = top3[0]
     if featured["url"] in new_by_url:
         featured = new_by_url[featured["url"]]
-    elif "points" not in featured:
-        # Featured slotuna cikan yazi bu calistirmada yeni eklenmemis
-        # (ör. daha once eksik kalmis, arsive simdi eklenen bir yazi bu
-        # calistirmada featured olmadi ama ileride olabilir) - alt baslik
-        # kontrolu icin sayfasini tazeden okuyalim.
+    elif "sections" not in featured:
+        # Featured slotundaki yazi bu calistirmada yeni eklenmemis (ör.
+        # eksik kalmis bir featured kutusu onariliyor) - ara baslik ve
+        # fotograflar icin sayfasini tazeden okuyalim.
         try:
-            page_html = fetch(featured["url"])
-            featured = {
-                **featured,
-                "excerpt": first_sentence(extract_og_description(page_html)) or featured["excerpt"],
-                "points": extract_points(page_html),
-            }
+            art = {**featured, "id": EXISTING_ID_RE.search(featured["url"]).group(1)}
+            featured = {**featured, **analyze_article(fetch_article(featured["url"]), art)}
         except Exception as exc:
             print(f"Uyari: featured yazi icin sayfa tazelenemedi ({featured['url']}): {exc}")
-            featured = {**featured, "points": []}
+            featured = {**featured, "sections": [], "points": []}
 
     featured_html = build_featured(featured)
     list_items_html = "\n".join(build_list_item(it) for it in top3[1:3])
@@ -325,6 +487,42 @@ def update_homepage(new_items: list) -> bool:
     return True
 
 
+def featured_needs_repair() -> bool:
+    """Anasayfadaki featured kutusu ara baslik kartlari/maddeler olmadan
+    ya da basligi tekrar eden bir ozetle kalmissa True (ör. bot yaziyi
+    yayindan hemen sonra okuyamadiysa)."""
+    content = INDEX_HTML.read_text(encoding="utf-8")
+    match = SECTION_RE.search(content)
+    if not match:
+        return False
+    block = match.group(0).split('<ul class="col-list">', 1)[0]
+    if 'class="col-sections"' in block or 'class="col-featured-points"' in block:
+        return False
+    return True
+
+
+def repair_archive_excerpts(limit: int = 5) -> None:
+    """Arsivde ozeti basligin tekrari olan son yazilarin ozetini onarir."""
+    content = ARCHIVE_HTML.read_text(encoding="utf-8")
+    changed = False
+    for m in list(OLD_LIST_ITEM_RE.finditer(content))[:limit]:
+        title, excerpt = html.unescape(m.group(3)).strip(), html.unescape(m.group(4)).strip()
+        if excerpt != title:
+            continue
+        try:
+            art = {"id": EXISTING_ID_RE.search(m.group(2)).group(1), "title": title}
+            new_excerpt = analyze_article(fetch_article(m.group(2)), art)["excerpt"]
+        except Exception as exc:
+            print(f"Uyari: ozet onarilamadi ({m.group(2)}): {exc}")
+            continue
+        if new_excerpt and new_excerpt != title:
+            old = f'<p class="col-excerpt">{m.group(4)}</p>'
+            content = content.replace(old, f'<p class="col-excerpt">{esc(new_excerpt)}</p>', 1)
+            changed = True
+    if changed:
+        ARCHIVE_HTML.write_text(content, encoding="utf-8")
+
+
 def main() -> int:
     archive_html = fetch(ARCHIVE_URL)
     articles = parse_archive(archive_html)
@@ -337,21 +535,21 @@ def main() -> int:
 
     new_articles = [a for a in articles if a["id"] not in existing_ids]
     if not new_articles:
+        if featured_needs_repair():
+            print("Yeni yazı yok; eksik kalan öne çıkan kutu/özetler onarılıyor.")
+            repair_archive_excerpts()
+            return 0 if update_homepage([]) else 1
         print("Zaten güncel, yeni köşe yazısı yok.")
         return 0
 
     new_items = []
     for art in new_articles:
-        excerpt = art["title"]
-        points = []
+        info = {"excerpt": art["title"], "sections": [], "points": []}
         try:
-            page_html = fetch(art["url"])
-            desc = extract_og_description(page_html)
-            excerpt = first_sentence(desc) or art["title"]
-            points = extract_points(page_html)
+            info = analyze_article(fetch_article(art["url"]), art)
         except Exception as exc:
             print(f"Uyari: yazı sayfası okunamadı ({art['url']}): {exc}")
-        new_items.append({**art, "excerpt": excerpt, "points": points})
+        new_items.append({**art, **info})
 
     ok_archive = update_archive_page(new_items)
     ok_home = update_homepage(new_items)

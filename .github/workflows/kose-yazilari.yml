@@ -28,12 +28,12 @@ jobs:
 
       - name: Commit and push if changed
         run: |
-          if git diff --quiet -- main-site/index.html main-site/kose-yazilari/index.html; then
+          if [ -z "$(git status --porcelain -- main-site/index.html main-site/kose-yazilari/index.html main-site/images/kose)" ]; then
             echo "Degisiklik yok, commit atlanıyor."
             exit 0
           fi
           git config user.name "kose-yazilari-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add main-site/index.html main-site/kose-yazilari/index.html
+          git add main-site/index.html main-site/kose-yazilari/index.html main-site/images/kose
           git commit -m "Son Köşe Yazıları bölümünü otomatik güncelle (Habertürk)"
           git push
