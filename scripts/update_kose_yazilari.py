@@ -73,7 +73,9 @@ EXISTING_ID_RE = re.compile(r"ozel-icerikler/guntay-simsek-1019/(\d+)-")
 # tarihiyle birlikte tek tek yakalar (yeniden ekleme sırasında tüm liste
 # gerçek tarihe göre yeniden sıralanabilsin diye).
 ENTRY_RE = re.compile(
-    r'(<li class="col-item">\s*<span class="col-date">([^<]+)</span>.*?</li>)',
+    # Oge, kendi girintisindeki (6 bosluk) </li> ile biter; alt baslik
+    # listesindeki ic ice <li>'ler daha derin girintili.
+    r'(<li class="col-item">\s*<span class="col-date">([^<]+)</span>.*?\n {6}</li>)',
     re.DOTALL,
 )
 
@@ -143,8 +145,9 @@ def first_sentence(text: str, max_len: int = 260) -> str:
 
 POINTS_STOP_MARKER = "Diğer Yazılar"
 BODY_START_MARKER = 'property="articleBody"'
+MAX_HEADING_LEN = 80
 IMAGES_DIR = REPO_ROOT / "main-site" / "images" / "kose"
-IMAGES_URL_PREFIX = "images/kose/"
+IMAGES_URL_PREFIX = "/images/kose/"
 
 # Habertürk yazı gövdesindeki sıralı öğeler: fotoğraf (widget-image),
 # ara başlık (h2/h3) ve paragraf.
@@ -199,7 +202,10 @@ def extract_sections(article_html: str, title: str):
             pending_img = html.unescape(m.group("img"))
         elif m.group("head") is not None:
             heading = strip_tags(m.group("head"))
-            if heading:
+            # Habertürk vurgulu alinti cumlelerini de ayni baslik
+            # etiketiyle isaretliyor; nokta ile biten ya da cok uzun
+            # "basliklar" ara baslik sayilmaz.
+            if heading and not heading.endswith(".") and len(heading) <= MAX_HEADING_LEN:
                 sections.append({"heading": heading, "image": pending_img,
                                  "paras": [], "raw": []})
             pending_img = None
@@ -258,7 +264,7 @@ def download_image(url: str, art_id: str, index: int) -> str:
     return IMAGES_URL_PREFIX + name
 
 
-def analyze_article(page_html: str, art: dict) -> dict:
+def analyze_article(page_html: str, art: dict, main_image: bool = True) -> dict:
     """Yazı sayfasından özet, ara başlık kartları (sections) ve - tek
     konulu yazıda - önemli bölüm maddelerini (points) çıkarır."""
     sections = extract_sections(page_html, art["title"])
@@ -271,7 +277,8 @@ def analyze_article(page_html: str, art: dict) -> dict:
             result["sections"].append({
                 "heading": sec["heading"],
                 "summary": lead_sentences(sec["paras"][0], 420 if idx == 0 else 320),
-                "image": download_image(sec["image"], art["id"], idx),
+                "image": download_image(sec["image"], art["id"], idx)
+                if (idx or main_image) else "",
             })
     elif sections:
         result["points"] = key_points(sections[0]["paras"], sections[0]["raw"])
@@ -329,10 +336,36 @@ def build_list_item(item: dict) -> str:
         '        <div>\n'
         f'          <h3 class="col-headline"><a href="{item["url"]}" target="_blank" rel="noopener">{title}</a></h3>\n'
         f'          <p class="col-excerpt">{esc(item["excerpt"])}</p>\n'
+        f'{build_subtopics(item.get("sections") or [], item["url"])}'
         f'{share_row(item["title"], item["url"], "        ")}\n'
         '        </div>\n'
         '      </li>'
     )
+
+
+def build_subtopics(sections: list, url: str) -> str:
+    """Liste/arsiv ogesinde ana yazinin altindaki diger ara basliklar
+    (fotografli kucuk satirlar). Ilk bolum ana yazinin kendisi oldugu icin
+    atlanir."""
+    subs = sections[1:]
+    if not subs:
+        return ""
+    rows = []
+    for sec in subs:
+        img = (
+            f'              <img src="{sec["image"]}" alt="{html.escape(sec["heading"])}" loading="lazy">\n'
+            if sec.get("image") else ""
+        )
+        rows.append(
+            '            <li class="col-subtopic">\n'
+            f'{img}'
+            '              <div>\n'
+            f'                <h4 class="col-subtopic-title"><a href="{url}" target="_blank" rel="noopener">{esc(sec["heading"])}</a></h4>\n'
+            f'                <p class="col-subtopic-text">{esc(first_sentence(sec["summary"], 220))}</p>\n'
+            '              </div>\n'
+            '            </li>'
+        )
+    return '          <ul class="col-subtopics">\n' + "\n".join(rows) + '\n          </ul>\n'
 
 
 def build_points_list(points: list) -> str:
@@ -471,7 +504,17 @@ def update_homepage(new_items: list) -> bool:
             featured = {**featured, "sections": [], "points": []}
 
     featured_html = build_featured(featured)
-    list_items_html = "\n".join(build_list_item(it) for it in top3[1:3])
+    # Liste ogeleri arsivdeki hazir bloklardan alinir (ara basliklari ve
+    # fotograflariyla birlikte).
+    raw_blocks = {}
+    for m in ENTRY_RE.finditer(archive_content):
+        um = re.search(r'<h3 class="col-headline"><a href="([^"]+)"', m.group(1))
+        if um:
+            raw_blocks[um.group(1)] = m.group(1)
+    list_items_html = "\n".join(
+        "      " + raw_blocks[it["url"]].lstrip() if it["url"] in raw_blocks else build_list_item(it)
+        for it in top3[1:3]
+    )
     content = INDEX_HTML.read_text(encoding="utf-8")
     match = SECTION_RE.search(content)
     if not match:
@@ -523,6 +566,38 @@ def repair_archive_excerpts(limit: int = 5) -> None:
         ARCHIVE_HTML.write_text(content, encoding="utf-8")
 
 
+def backfill_subtopics() -> int:
+    """Tek seferlik: arsivdeki ara baslik listesi olmayan yazilari Habertürk'ten
+    tarar; birden fazla ara basligi olanlara fotografli alt basliklari ekler."""
+    content = ARCHIVE_HTML.read_text(encoding="utf-8")
+    added = 0
+    for m in list(ENTRY_RE.finditer(content)):
+        block = m.group(1)
+        if 'class="col-subtopics"' in block:
+            continue
+        um = re.search(r'<h3 class="col-headline"><a href="([^"]+)"[^>]*>([^<]+)</a>', block)
+        if not um:
+            continue
+        url, title = um.group(1), html.unescape(um.group(2))
+        try:
+            art = {"id": EXISTING_ID_RE.search(url).group(1), "title": title}
+            info = analyze_article(fetch_article(url), art, main_image=False)
+        except Exception as exc:
+            print(f"Uyari: {url} okunamadi: {exc}")
+            continue
+        subs_html = build_subtopics(info["sections"], url)
+        if not subs_html:
+            continue
+        new_block = re.sub(r'(<p class="col-excerpt">.*?</p>\n)', lambda x: x.group(1) + subs_html,
+                           block, count=1, flags=re.DOTALL)
+        content = content.replace(block, new_block, 1)
+        added += 1
+        print(f" + {title}: {len(info['sections']) - 1} ara baslik")
+    ARCHIVE_HTML.write_text(content, encoding="utf-8")
+    print(f"{added} yaziya ara basliklar eklendi.")
+    return 0
+
+
 def main() -> int:
     archive_html = fetch(ARCHIVE_URL)
     articles = parse_archive(archive_html)
@@ -563,4 +638,6 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    if "--backfill" in sys.argv:
+        sys.exit(backfill_subtopics() or (0 if update_homepage([]) else 1))
     sys.exit(main())
