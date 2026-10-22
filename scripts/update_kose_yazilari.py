@@ -380,25 +380,52 @@ def build_points_list(points: list) -> str:
     return f'      <ul class="col-featured-points">\n{lines}\n      </ul>\n'
 
 
-def build_sections(sections: list, url: str) -> str:
-    """Ara basliklara bolunmus yazida her baslik icin ayri kart."""
-    if not sections:
-        return ""
-    cards = []
-    for idx, sec in enumerate(sections, 1):
-        img = (
-            f'          <img src="{sec["image"]}" alt="{html.escape(sec["heading"])}" loading="lazy">\n'
-            if sec.get("image") else ""
-        )
-        cards.append(
+def _points_ul(points: list, url: str) -> str:
+    items = []
+    for idx, sec in enumerate(points, 1):
+        items.append(
             '        <li class="col-section">\n'
-            f'{img}'
             f'          <span class="col-section-num">{idx:02d}</span>\n'
             f'          <h4 class="col-section-title"><a href="{url}" target="_blank" rel="noopener">{esc(sec["heading"])}</a></h4>\n'
             f'          <p class="col-section-text">{esc(sec["summary"])}</p>\n'
             '        </li>'
         )
-    return '      <ul class="col-sections">\n' + "\n".join(cards) + '\n      </ul>\n'
+    return '      <ul class="col-sections">\n' + "\n".join(items) + '\n      </ul>\n'
+
+
+def build_sections(sections: list, url: str) -> str:
+    """Ana yazinin altindaki basliklar: fotografsiz basliklar ana konunun
+    maddeleridir; fotografli bir baslik (Habertürk'te konunun ilk basligi)
+    yeni bir konu baslatir ve kendi alt maddeleriyle ayri blokta gosterilir."""
+    if not sections:
+        return ""
+    main_points, topics = [], []
+    for sec in sections:
+        if sec.get("image"):
+            topics.append({"head": sec, "points": []})
+        elif topics:
+            topics[-1]["points"].append(sec)
+        else:
+            main_points.append(sec)
+    out = ""
+    if main_points:
+        out += '      <p class="col-sections-label">Yazının başlıkları</p>\n'
+        out += _points_ul(main_points, url)
+    if topics:
+        out += '      <p class="col-sections-label">Aynı yazıdaki diğer konular</p>\n'
+        for t in topics:
+            h = t["head"]
+            out += (
+                '      <div class="col-topic">\n'
+                f'        <img src="{h["image"]}" alt="{html.escape(h["heading"])}" loading="lazy">\n'
+                '        <div class="col-topic-body">\n'
+                f'          <h4 class="col-topic-title"><a href="{url}" target="_blank" rel="noopener">{esc(h["heading"])}</a></h4>\n'
+                f'          <p class="col-topic-text">{esc(h["summary"])}</p>\n'
+                + (_points_ul(t["points"], url) if t["points"] else "")
+                + '        </div>\n'
+                '      </div>\n'
+            )
+    return out
 
 
 def build_featured(item: dict) -> str:
