@@ -2,10 +2,10 @@ name: Son Köşe Yazıları güncelle
 
 on:
   schedule:
-    # Her gün Türkiye saatiyle 11:00'de (UTC+3, Türkiye DST kullanmıyor -
-    # bu yuzden 08:00 UTC) Habertürk yazar arşivini kontrol eder. Yeni bir
-    # yazı yoksa hiçbir şey değiştirmez.
-    - cron: '0 8 * * *'
+    # Her salı ve perşembe Türkiye saatiyle 13:00'te (UTC+3, Türkiye DST
+    # kullanmıyor - bu yuzden 10:00 UTC) Habertürk yazar arşivini kontrol
+    # eder. Yeni bir yazı yoksa hiçbir şey değiştirmez.
+    - cron: '0 10 * * 2,4'
   workflow_dispatch: {}
 
 permissions:
