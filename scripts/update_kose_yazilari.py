@@ -79,6 +79,8 @@ ENTRY_RE = re.compile(
     re.DOTALL,
 )
 
+TICKER_NEW_RE = re.compile(r'(<span class="ticker-tag">YENİ YAZI</span>)[^<]*</span>')
+
 LIST_BLOCK_RE = re.compile(r'<ul class="col-list">\n(.*?)\n    </ul>', re.DOTALL)
 
 SECTION_RE = re.compile(
@@ -526,6 +528,11 @@ def update_homepage(new_items: list) -> bool:
         '    <a class="section-more" href="kose-yazilari/">Tüm Köşe Yazıları →</a>'
     )
     content = content[: match.start()] + new_section + content[match.end():]
+    # Sayfa ustundeki kayan "YENI YAZI" bandi her zaman en guncel yazinin
+    # basligini gostermeli (band kesintisiz donsun diye iki kez tekrarlanir).
+    content = TICKER_NEW_RE.sub(
+        lambda m: m.group(1) + esc(featured["title"]) + "</span>", content
+    )
     INDEX_HTML.write_text(content, encoding="utf-8")
     return True
 
