@@ -537,6 +537,21 @@ def update_homepage(new_items: list) -> bool:
     return True
 
 
+def sync_ticker() -> bool:
+    """Kayan YENI YAZI bandi, anasayfadaki öne çıkan yazının başlığından
+    farklıysa eşitler; değişiklik yapıldıysa True döner."""
+    content = INDEX_HTML.read_text(encoding="utf-8")
+    m = re.search(r'<h3 class="col-featured-title"><a [^>]*>([^<]+)</a></h3>', content)
+    if not m:
+        return False
+    title = m.group(1)  # HTML'de zaten kacirilmis hali
+    new = TICKER_NEW_RE.sub(lambda t: t.group(1) + title + "</span>", content)
+    if new == content:
+        return False
+    INDEX_HTML.write_text(new, encoding="utf-8")
+    return True
+
+
 def featured_needs_repair() -> bool:
     """Anasayfadaki featured kutusu ara baslik kartlari/maddeler olmadan
     ya da basligi tekrar eden bir ozetle kalmissa True (ör. bot yaziyi
@@ -621,6 +636,9 @@ def main() -> int:
             print("Yeni yazı yok; eksik kalan öne çıkan kutu/özetler onarılıyor.")
             repair_archive_excerpts()
             return 0 if update_homepage([]) else 1
+        if sync_ticker():
+            print("Yeni yazı yok; kayan YENİ YAZI bandı en güncel başlığa eşitlendi.")
+            return 0
         print("Zaten güncel, yeni köşe yazısı yok.")
         return 0
 
