@@ -40,6 +40,7 @@ import sys
 import xml.etree.ElementTree as ET
 from datetime import date
 from pathlib import Path
+from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -48,6 +49,7 @@ IMAGES_DIR = REPO_ROOT / "main-site" / "images"
 FEED_URL = "https://haber.aero/feed/"
 UA = "Mozilla/5.0 (compatible; guntaysimsek-airport-teaser-bot/1.0)"
 MAX_CONTENT_SCAN = 20
+EXTRA_FEED_PAGES = 3
 
 # haber.aero bu tanıtımı genelde haftada bir (cuma/cumartesi) yayınlıyor;
 # bu esiğin cok asilmasi (ör. iki haftadan fazla hicbir guncelleme
@@ -65,6 +67,8 @@ GENERIC_PROMO_RE = re.compile(
 
 
 def fetch(url: str, timeout: int = 20) -> bytes:
+    # Gorsel dosya adlarinda ASCII disi karakter (ör. birlestirici nokta) olabilir.
+    url = quote(url, safe=":/?&=%#~+@!$'()*,;")
     req = Request(url, headers={"User-Agent": UA})
     with urlopen(req, timeout=timeout) as resp:
         return resp.read()
@@ -142,21 +146,37 @@ def build_teaser_block(href: str, img_src: str, alt: str, title: str, desc: str)
     )
 
 
-def find_dedicated_item(feed_xml: bytes):
-    """Basligi 'Airport'ta bu hafta ...' olan dedicated haberi arar."""
-    root = ET.fromstring(feed_xml)
-    for item in root.iter("item"):
-        title_raw = (item.findtext("title") or "").strip()
-        title = html.unescape(title_raw)
-        low = title.lower()
-        if "airport" in low and "bu hafta" in low:
-            link = (item.findtext("link") or "").strip()
-            desc_raw = item.findtext("description") or ""
-            return {
-                "link": link,
-                "title": re.sub(r"^Airport.{0,3}ta bu hafta:\s*", "", title, flags=re.IGNORECASE),
-                "desc": first_sentence(desc_raw),
-            }
+def fetch_older_feed_pages(pages=EXTRA_FEED_PAGES) -> list:
+    """haber.aero feed'i yalnizca son 10 haberi veriyor; haftalik tanitim
+    Pazar gunu yayinlanip Pazartesi sabahi 10 haberin disinda kalabiliyor.
+    Bu yuzden dedicated haber aranirken feed'in sonraki sayfalarina da
+    bakilir (ayni kural, yalnizca daha genis arama penceresi)."""
+    older = []
+    for n in range(2, pages + 2):
+        try:
+            older.append(fetch(f"{FEED_URL}?paged={n}"))
+        except Exception:
+            break
+    return older
+
+
+def find_dedicated_item(feed_xml: bytes, older_pages=()):
+    """Basligi 'Airport'ta bu hafta ...' olan dedicated haberi arar (once en
+    yeni sayfa, sonra daha eski sayfalar)."""
+    for xml_bytes in (feed_xml, *older_pages):
+        root = ET.fromstring(xml_bytes)
+        for item in root.iter("item"):
+            title_raw = (item.findtext("title") or "").strip()
+            title = html.unescape(title_raw)
+            low = title.lower()
+            if "airport" in low and "bu hafta" in low:
+                link = (item.findtext("link") or "").strip()
+                desc_raw = item.findtext("description") or ""
+                return {
+                    "link": link,
+                    "title": re.sub(r"^Airport\W{0,2}t?a?\s*bu hafta:\s*", "", title, flags=re.IGNORECASE),
+                    "desc": first_sentence(desc_raw),
+                }
     return None
 
 
@@ -250,7 +270,7 @@ def main() -> int:
         return 1
 
     # 1) Once dedicated "Airport'ta bu hafta: ..." haberini dene.
-    item = find_dedicated_item(feed_xml)
+    item = find_dedicated_item(feed_xml, fetch_older_feed_pages())
     if item:
         og_image = extract_og_image(fetch(item["link"]).decode("utf-8", errors="ignore"))
         if not og_image:
