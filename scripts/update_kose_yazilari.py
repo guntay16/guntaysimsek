@@ -191,6 +191,9 @@ def article_body(article_html: str) -> str:
     return body[start:] if start != -1 else body
 
 
+PHOTO_PLACEHOLDER_RE = re.compile(r"^#\w+#\d+#$")
+
+
 def extract_sections(article_html: str, title: str):
     """Yazıyı ara başlıklarına göre bölümlere ayırır. Her bölüm: başlık,
     fotoğraf URL'si (varsa) ve paragrafları. Ara başlıktan önceki ilk
@@ -207,6 +210,10 @@ def extract_sections(article_html: str, title: str):
             # Habertürk vurgulu alinti cumlelerini de ayni baslik
             # etiketiyle isaretliyor; nokta ile biten ya da cok uzun
             # "basliklar" ara baslik sayilmaz.
+            if PHOTO_PLACEHOLDER_RE.match(heading):
+                # "#resim#1405717#" yazi ici fotograf yer tutucusudur, baslik degil.
+                pending_img = None
+                continue
             if heading and not heading.endswith(".") and len(heading) <= MAX_HEADING_LEN:
                 sections.append({"heading": heading, "image": pending_img,
                                  "paras": [], "raw": []})
@@ -252,17 +259,28 @@ def download_image(url: str, art_id: str, index: int) -> str:
     name = safe_image_name(art_id, index)
     target = IMAGES_DIR / name
     if not target.exists():
-        try:
-            req = Request(url, headers={"User-Agent": UA})
-            with urlopen(req, timeout=30) as resp:
-                data = resp.read()
-            if len(data) < 2000:
-                return ""
-            IMAGES_DIR.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(data)
-        except Exception as exc:
-            print(f"Uyari: fotograf indirilemedi ({url}): {exc}")
+        candidates = [url]
+        sm = re.search(r"^(https://im\.haberturk\.com/.+/jpg/)\d+x\d+$", url)
+        if sm:
+            # Habertturk CDN'i her gorselin yalnizca bazi boyutlarini sunabiliyor
+            candidates += [sm.group(1) + size for size in
+                           ("1920x1080", "1280x720", "1200x628", "640x360")
+                           if sm.group(1) + size != url]
+        data = b""
+        for cand in candidates:
+            try:
+                req = Request(cand, headers={"User-Agent": UA})
+                with urlopen(req, timeout=30) as resp:
+                    data = resp.read()
+                if len(data) >= 2000:
+                    break
+            except Exception as exc:
+                print(f"Uyari: fotograf indirilemedi ({cand}): {exc}")
+                data = b""
+        if len(data) < 2000:
             return ""
+        IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
     return IMAGES_URL_PREFIX + name
 
 
