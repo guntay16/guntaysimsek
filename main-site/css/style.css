@@ -610,11 +610,14 @@ section{padding:56px 0;}
 }
 .photo-link{
   font-family:'IBM Plex Mono', monospace;
-  font-size:0.8rem;
+  font-weight:600;
+  font-size:1.05rem;
+  line-height:1.5;
+  color:#000;
   text-decoration:none;
-  border-bottom:1px solid var(--crimson);
-  white-space:nowrap;
+  border-bottom:2px solid var(--crimson);
 }
+.photo-link:hover{color:var(--crimson);}
 .photo-row{
   display:grid;
   grid-template-columns:repeat(4,1fr);
