@@ -154,11 +154,23 @@ IMAGES_URL_PREFIX = "/images/kose/"
 # Habertürk yazı gövdesindeki sıralı öğeler: fotoğraf (widget-image),
 # ara başlık (h2/h3) ve paragraf.
 BODY_TOKEN_RE = re.compile(
-    r'<div class="widget-image[^>]*>\s*<img[^>]*?data-big-src="(?P<img>[^"]+)"'
+    r'<div class="widget-image[^>]*>\s*(?P<imgtag><img[^>]*>)'
     r'|<h(?P<hl>[23])[^>]*>(?P<head>.*?)</h(?P=hl)>'
     r'|<p[^>]*>(?P<para>.*?)</p>',
     re.DOTALL,
 )
+IMG_SRC_RE = re.compile(r'(?:data-big-src|(?<![\w-])src)="([^"]+)"')
+
+
+def image_url_from_tag(tag: str) -> str:
+    """Önce data-big-src, yoksa src (Habertürk bazı yazılarda yalnızca src
+    kullanıyor; 11 Kasım 2026 yazısında konu fotoğrafları bu yüzden
+    okunamamıştı)."""
+    big = re.search(r'data-big-src="([^"]+)"', tag)
+    if big:
+        return html.unescape(big.group(1))
+    src = re.search(r'(?<![\w-])src="([^"]+)"', tag)
+    return html.unescape(src.group(1)) if src else ""
 
 
 def extract_og_image(page_html: str) -> str:
@@ -200,11 +212,11 @@ def extract_sections(article_html: str, title: str):
     bölüm yazının ana başlığını ve kapak fotoğrafını (og:image) alır.
     Habertürk'te bir ara başlığın fotoğrafı başlığın hemen ÜSTÜNDE durur."""
     sections = [{"heading": title.strip(), "image": extract_og_image(article_html),
-                 "paras": [], "raw": []}]
+                 "level": 0, "paras": [], "raw": []}]
     pending_img = None
     for m in BODY_TOKEN_RE.finditer(article_body(article_html)):
-        if m.group("img"):
-            pending_img = html.unescape(m.group("img"))
+        if m.group("imgtag"):
+            pending_img = image_url_from_tag(m.group("imgtag")) or None
         elif m.group("head") is not None:
             heading = strip_tags(m.group("head"))
             # Habertürk vurgulu alinti cumlelerini de ayni baslik
@@ -216,6 +228,7 @@ def extract_sections(article_html: str, title: str):
                 continue
             if heading and not heading.endswith(".") and len(heading) <= MAX_HEADING_LEN:
                 sections.append({"heading": heading, "image": pending_img,
+                                 "level": int(m.group("hl")),
                                  "paras": [], "raw": []})
             pending_img = None
         else:
@@ -242,6 +255,17 @@ def key_points(paras: list, raws: list, max_points: int = 3):
             best = max(chunk, key=lambda i: (raws[i].count("<strong"), -i))
             picks.append(best)
     return [{"summary": lead_sentences(paras[i], 260)} for i in picks]
+
+
+def topic_summary(paras: list, max_len: int = 360) -> str:
+    """Çok konulu yazıda konunun kısa özeti: konunun ilk paragrafından
+    (kısaysa ikincisinden de) yazarın kendi cümleleri."""
+    if not paras:
+        return ""
+    out = lead_sentences(paras[0], max_len)
+    if len(out) < 160 and len(paras) > 1:
+        out = lead_sentences(paras[0] + " " + paras[1], max_len)
+    return out
 
 
 def safe_image_name(art_id: str, index: int) -> str:
@@ -293,10 +317,32 @@ def analyze_article(page_html: str, art: dict, main_image: bool = True) -> dict:
         excerpt = first_sentence(sections[0]["paras"][0])
     result = {"excerpt": excerpt or art["title"], "sections": [], "points": []}
     if len(sections) > 1:
+        # Yazıda hem h2 hem h3 başlık varsa h2 = konu, h3 = o konunun
+        # bölümüdür; yalnız tek seviye varsa fotoğraflı başlık yeni konu
+        # sayılır. KURAL (11 Kas 2026, kullanıcı): yazı tek konuysa alt
+        # başlıkları kullanılır; o gün 3-4 ayrı konu yazılmışsa yalnız
+        # konu başlıkları ve yazıdan kısa özetleri gösterilir, bölüm
+        # (alt) başlıkları tekrar kullanılmaz.
+        levels = {sec.get("level") for sec in sections[1:]}
+        by_level = {2, 3} <= levels
+        rows = []
         for idx, sec in enumerate(sections):
+            is_topic = idx > 0 and ((sec.get("level") == 2) if by_level else bool(sec.get("image")))
+            rows.append((idx, sec, is_topic))
+        multi = any(is_topic for _, _, is_topic in rows)
+        for idx, sec, is_topic in rows:
+            if multi and idx > 0 and not is_topic:
+                continue   # çok konulu yazıda bölüm başlıkları gösterilmez
+            if idx == 0:
+                summary = lead_sentences(sec["paras"][0], 420)
+            elif multi:
+                summary = topic_summary(sec["paras"])
+            else:
+                summary = lead_sentences(sec["paras"][0], 320)
             result["sections"].append({
+                "topic": is_topic,
                 "heading": sec["heading"],
-                "summary": lead_sentences(sec["paras"][0], 420 if idx == 0 else 320),
+                "summary": summary,
                 "image": download_image(sec["image"], art["id"], idx)
                 if (idx or main_image) else "",
             })
@@ -377,7 +423,7 @@ def build_subtopics(sections: list, url: str) -> str:
             if sec.get("image") else ""
         )
         rows.append(
-            '            <li class="col-subtopic">\n'
+            f'            <li class="col-subtopic{" is-topic" if sec.get("topic") else ""}">\n'
             f'{img}'
             '              <div>\n'
             f'                <h4 class="col-subtopic-title"><a href="{url}" target="_blank" rel="noopener">{esc(sec["heading"])}</a></h4>\n'
@@ -419,7 +465,7 @@ def build_sections(sections: list, url: str) -> str:
         return ""
     main_points, topics = [], []
     for sec in sections:
-        if sec.get("image"):
+        if sec.get("topic", bool(sec.get("image"))):
             topics.append({"head": sec, "points": []})
         elif topics:
             topics[-1]["points"].append(sec)
@@ -433,9 +479,13 @@ def build_sections(sections: list, url: str) -> str:
         out += '      <p class="col-sections-label">Aynı yazıdaki diğer konular</p>\n'
         for t in topics:
             h = t["head"]
-            out += (
-                '      <div class="col-topic">\n'
+            topic_img = (
                 f'        <img src="{h["image"]}" alt="{html.escape(h["heading"])}" loading="lazy">\n'
+                if h.get("image") else ""
+            )
+            out += (
+                f'      <div class="col-topic{"" if h.get("image") else " no-photo"}">\n'
+                f'{topic_img}'
                 '        <div class="col-topic-body">\n'
                 f'          <h4 class="col-topic-title"><a href="{url}" target="_blank" rel="noopener">{esc(h["heading"])}</a></h4>\n'
                 f'          <p class="col-topic-text">{esc(h["summary"])}</p>\n'
@@ -707,7 +757,64 @@ def main() -> int:
     return 0
 
 
+def rebuild_article(art_id: str) -> int:
+    """Arşivdeki tek bir yazıyı Habertürk'ten tazeden okuyup (konu/bölüm
+    ayrımı, fotoğraflar) arşivde ve anasayfada yeniden kurar. Kullanım:
+        python3 scripts/update_kose_yazilari.py --rebuild 3926255"""
+    articles = parse_archive(fetch(ARCHIVE_URL))
+    art = next((a for a in articles if a["id"] == art_id), None)
+    if not art:
+        print(f"Hata: {art_id} Habertürk arşivinde bulunamadı.")
+        return 1
+    content = ARCHIVE_HTML.read_text(encoding="utf-8")
+    match = LIST_BLOCK_RE.search(content)
+    victims = [m.group(1) for m in ENTRY_RE.finditer(match.group(1)) if f"/{art_id}-" in m.group(1)]
+    for block in victims:
+        content = content.replace(block, "", 1)
+    ARCHIVE_HTML.write_text(content, encoding="utf-8")
+    info = analyze_article(fetch_article(art["url"]), art)
+    item = {**art, **info}
+    if not (update_archive_page([item]) and update_homepage([item])):
+        return 1
+    print(f"Yeniden kuruldu: {art['date']}  {art['title']}")
+    return 0
+
+
+def rebuild_all() -> int:
+    """Arşivdeki TÜM yazıları güncel kurala göre (tek konu = alt başlıklar,
+    çok konu = konular + kısa özetler) Habertürk'ten tazeden kurar; mevcut
+    özet (excerpt) korunur. Sonra anasayfayı arşivden yeniden türetir."""
+    content = ARCHIVE_HTML.read_text(encoding="utf-8")
+    match = LIST_BLOCK_RE.search(content)
+    blocks = [m.group(1) for m in ENTRY_RE.finditer(match.group(1))]
+    done = 0
+    for block in blocks:
+        m = OLD_LIST_ITEM_RE.search(block)
+        if not m:
+            continue
+        date, url, title, excerpt = m.group(1).strip(), m.group(2), html.unescape(m.group(3)), html.unescape(m.group(4))
+        art = {"id": EXISTING_ID_RE.search(url).group(1), "title": title, "url": url, "date": date}
+        try:
+            info = analyze_article(fetch_article(url), art, main_image=False)
+        except Exception as exc:
+            print(f"Uyari: {url} okunamadi, olduğu gibi bırakıldı: {exc}")
+            continue
+        item = {**art, "excerpt": excerpt, "sections": info["sections"], "points": info["points"]}
+        new_block = build_list_item(item)
+        lead = "      " if block.startswith("      ") else ""
+        content = content.replace(block, lead + new_block.lstrip(), 1)
+        done += 1
+        print(f" ~ {date} {title[:60]} ({len(info['sections']) - 1} alt öğe)")
+    ARCHIVE_HTML.write_text(content, encoding="utf-8")
+    print(f"{done} yazı yeniden kuruldu.")
+    return 0 if update_homepage([]) else 1
+
+
 if __name__ == "__main__":
+    if "--rebuild-all" in sys.argv:
+        sys.exit(rebuild_all())
+    if "--rebuild" in sys.argv:
+        sys.exit(rebuild_article(sys.argv[sys.argv.index("--rebuild") + 1]))
     if "--backfill" in sys.argv:
         sys.exit(backfill_subtopics() or (0 if update_homepage([]) else 1))
     sys.exit(main())
