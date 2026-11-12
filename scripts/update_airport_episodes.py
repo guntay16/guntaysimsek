@@ -1,32 +1,30 @@
 #!/usr/bin/env python3
 """
 guntaysimsek.com'daki "TV Yayınları — Airport" bölümlerini (anasayfa
-hcard-row ve televizyon/index.html tv-list) tv.haberturk.com'daki gerçek
-Airport program sayfasıyla otomatik senkronize eder.
+hcard-row ve televizyon/index.html tv-list) Airport programının YouTube
+oynatma listesiyle otomatik senkronize eder.
 
-Kaynak: https://tv.haberturk.com/program/airport/147
-(Airport programının kendi sayfası - hem en yeni (öne çıkan) bölümü hem de
-son bölümlerin bir listesini sunucu tarafında render edilmiş düz HTML
-olarak içerir, JS çalıştırmaya gerek yok.)
+Kaynak (12 Kasım 2026'dan beri; kullanıcı: "Habertürk yerine tv programına
+burayı link verelim"): AirportHT YouTube kanalının "Airport" oynatma listesi
+(tam bölümler, "Konu | Airport -8 Kasım 2026" başlığıyla):
+    https://www.youtube.com/playlist?list=PL7F3383DF1908AE23
+Düz RSS akışı (son 15 bölüm), JS ve API anahtarı gerekmez:
+    https://www.youtube.com/feeds/videos.xml?playlist_id=PL7F3383DF1908AE23
 
-Kural: sadece Habertürk'ün kendi başlığı, kendi tarihi, kendi linki, kendi
-kapak görseli ve (bölüm sayfasındaki) kendi konuk tanıtım cümlesinden
-türetilen içerik kullanılır - uydurma içerik yok.
+Kural: sadece YouTube'daki kendi başlık, tarih, bağlantı, kapak görseli ve
+açıklamanın ilk paragrafı kullanılır - uydurma içerik yok. Bağlantılar
+YouTube'daki bölüme (watch?v=...) gider.
 
-Calisma mantigi:
-  1) Program sayfasından bölüm listesini (id, tarih, başlık, kapak görseli)
-     çıkarır - hem "öne çıkan" en yeni bölüm hem de altındaki bölüm
-     şeridi aynı <a title="Airport - ..." href=".../airport-...-/ID"> kalıbını
-     kullandığı için tek bir taramayla ikisi de yakalanır.
-  2) main-site/televizyon/index.html içinde henüz bulunmayan (yeni) bölümleri
-     tespit eder (id, video URL'sindeki son sayı).
-  3) Yeni bölüm yoksa hiçbir şey değiştirmez.
-  4) Yeni bölüm(ler) varsa, her biri için kendi video sayfasından
-     ("cms-container" içindeki konuk tanıtım cümlesi) kısa açıklama çeker
-     ve iki dosyanın da listesinin EN BAŞINA ekler (hiçbir eski bölüm
-     silinmez, sıralama en yeniden en eskiye).
+Çalışma mantığı:
+  1) Akıştaki bölümleri (video id, tarih, konu) çıkarır.
+  2) Sitede Habertürk bağlantısıyla duran, akışta bulunan bölümlerin
+     bağlantısını/kapağını YouTube'a çevirir (bir kerelik göç; akışta olmayan
+     çok eski bölümler olduğu gibi kalır).
+  3) Sitede tarihi bulunmayan yeni bölümleri iki dosyanın da listesinin EN
+     BAŞINA ekler (hiçbir eski bölüm silinmez).
+  4) Yeni bölüm yoksa ve en yeni bölüm çok eskiyse açık hata verir.
 
-Her pazartesi GitHub Actions tarafından çalıştırılır (bkz.
+Pazartesi-Perşembe GitHub Actions tarafından çalıştırılır (bkz.
 .github/workflows/airport-episodes.yml). Elle çalıştırmak için:
     python3 scripts/update_airport_episodes.py
 """
@@ -42,7 +40,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 INDEX_HTML = REPO_ROOT / "main-site" / "index.html"
 TV_HTML = REPO_ROOT / "main-site" / "televizyon" / "index.html"
 
-PROGRAM_URL = "https://tv.haberturk.com/program/airport/147"
+PLAYLIST_ID = "PL7F3383DF1908AE23"
+FEED_URL = f"https://www.youtube.com/feeds/videos.xml?playlist_id={PLAYLIST_ID}"
+PLAYLIST_URL = f"https://www.youtube.com/playlist?list={PLAYLIST_ID}"
 UA = "Mozilla/5.0 (compatible; guntaysimsek-airport-bot/1.0)"
 
 # Airport her Pazar 12:15'te yayinlaniyor, bu script her Pazartesi
@@ -89,57 +89,79 @@ def esc(text: str) -> str:
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def parse_program_page(page_html: str) -> list:
-    """Program sayfasındaki tüm bölüm linklerini (öne çıkan + şerit) tarih
-    sırasına gerek kalmadan çıkarır, en yeniden en eskiye sıralı döner."""
-    seen_ids = set()
+FEED_TITLE_RE = re.compile(r"^(.*?)\s*\|\s*Airport\s*-\s*(\d{1,2})\s+(\S+)\s+(\d{4})")
+
+
+def thumb_url(video_id: str) -> str:
+    """16:9 kapak: maxresdefault varsa o, yoksa mqdefault."""
+    best = f"https://i.ytimg.com/vi/{video_id}/maxresdefault.jpg"
+    try:
+        req = Request(best, headers={"User-Agent": UA}, method="HEAD")
+        with urlopen(req, timeout=20) as resp:
+            if resp.status == 200:
+                return best
+    except Exception:
+        pass
+    return f"https://i.ytimg.com/vi/{video_id}/mqdefault.jpg"
+
+
+def parse_feed(feed_xml: str) -> list:
+    """Oynatma listesi akışından bölümleri (en yeniden en eskiye) çıkarır;
+    'Konu | Airport -8 Kasım 2026' kalıbına uymayanlar atlanır."""
     episodes = []
-    for m in TAG_RE.finditer(page_html):
-        tag = m.group(0)
-        if "video/programlar/izle/airport-" not in tag:
+    for entry in re.findall(r"<entry>(.*?)</entry>", feed_xml, re.DOTALL):
+        vid = re.search(r"<yt:videoId>([^<]+)</yt:videoId>", entry)
+        title = re.search(r"<title>([^<]+)</title>", entry)
+        if not vid or not title:
             continue
-        href_m = HREF_RE.search(tag)
-        title_m = TITLE_RE.search(tag)
-        if not href_m or not title_m:
-            continue
-        href = href_m.group(1)
-        ep_id_m = EP_ID_RE.search(href)
-        if not ep_id_m:
-            continue
-        ep_id = ep_id_m.group(1)
-        if ep_id in seen_ids:
-            continue
-        title = html.unescape(title_m.group(1))
-        tm = TITLE_PARSE_RE.match(title)
+        tm = FEED_TITLE_RE.match(html.unescape(title.group(1)).strip())
         if not tm:
             continue
-        day, monname, year, subject = tm.groups()
+        subject, day, monname, year = tm.groups()
         mon = TR_MONTHS.get(monname.lower())
         if not mon:
             continue
-        seen_ids.add(ep_id)
-        img_m = IMG_RE.search(page_html, m.end(), m.end() + 800)
+        desc_m = re.search(r"<media:description>(.*?)</media:description>", entry, re.DOTALL)
+        desc = ""
+        if desc_m:
+            first = html.unescape(desc_m.group(1)).strip().split("\n\n")[0]
+            desc = re.sub(r"\s+", " ", first).strip()
         episodes.append({
-            "id": ep_id,
-            "url": href,
+            "id": vid.group(1),
+            "url": f"https://www.youtube.com/watch?v={vid.group(1)}",
             "date": f"{year}.{int(mon):02d}.{int(day):02d}",
             "subject": subject.strip(),
-            "img": img_m.group(1) if img_m else None,
+            "img": None,
+            "desc": desc,
         })
     episodes.sort(key=lambda e: e["date"], reverse=True)
     return episodes
 
 
-def episode_desc(episode: dict) -> str:
-    try:
-        page_html = fetch(episode["url"])
-    except Exception as exc:
-        print(f"Uyari: bölüm sayfası okunamadı ({episode['url']}): {exc}")
-        return ""
-    m = CMS_DESC_RE.search(page_html)
-    if not m:
-        return ""
-    return re.sub(r"\s+", " ", html.unescape(m.group(1))).strip()
+def migrate_links(path: Path, block_re: re.Pattern, date_re: re.Pattern, episodes: list) -> int:
+    """Habertürk bağlantılı mevcut kartları, akışta bulunan bölümler için
+    YouTube bağlantısı ve kapağına çevirir."""
+    content = path.read_text(encoding="utf-8")
+    by_date = {e["date"]: e for e in episodes}
+    changed = 0
+    for m in list(block_re.finditer(content)):
+        block = m.group(0)
+        dm = date_re.search(block)
+        old = re.search(r'https://www\.haberturk\.com/video/programlar/izle/airport-[^"\s&]+', block)
+        if not dm or not old:
+            continue
+        ep = by_date.get(f"{dm.group(1)}.{dm.group(2)}.{dm.group(3)}")
+        if not ep:
+            continue
+        new_block = block.replace(old.group(0), ep["url"])
+        new_block = new_block.replace(quote(old.group(0), safe="/"), quote(ep["url"], safe="/"))
+        new_block = re.sub(r'https://mo\.ciner\.com\.tr/[^"]+?\.jpg', thumb_url(ep["id"]), new_block)
+        if new_block != block:
+            content = content.replace(block, new_block, 1)
+            changed += 1
+    if changed:
+        path.write_text(content, encoding="utf-8")
+    return changed
 
 
 def build_hcard(ep: dict) -> str:
@@ -194,17 +216,55 @@ def prepend_block(path: Path, marker_re: re.Pattern, new_html: str) -> bool:
     return True
 
 
+HCARD_BLOCK_RE = re.compile(r'<a class="hcard"[^>]*>.*?</a>\n', re.DOTALL)
+TV_BLOCK_RE = re.compile(r'<li class="tv-ep">.*?</li>\n', re.DOTALL)
+HCARD_DATE_RE = re.compile(r'<span class="hcard-date">(\d{4})\.(\d{2})\.(\d{2})</span>')
+
+
+def insert_sorted(path: Path, block_re: re.Pattern, date_re: re.Pattern,
+                  marker_re: re.Pattern, new_html: str, ep_date: str) -> bool:
+    """Yeni bölüm kartını tarih sırasına göre yerleştirir: kendinden daha
+    eski ilk kartın önüne; hepsi daha yeniyse listenin sonuna (daha önce
+    eksik kalmış eski bir bölüm yanlışlıkla en üste çıkmasın)."""
+    content = path.read_text(encoding="utf-8")
+    mk = marker_re.search(content)
+    if not mk:
+        print(f"Hata: {path} icinde beklenen blok bulunamadi.")
+        return False
+    pos = None
+    for m in block_re.finditer(content, mk.end(1)):
+        dm = date_re.search(m.group(0))
+        if dm and f"{dm.group(1)}.{dm.group(2)}.{dm.group(3)}" < ep_date:
+            pos = m.start()
+            break
+    if pos is None:   # hepsinden eski: son kartın sonuna
+        last = None
+        for last in block_re.finditer(content, mk.end(1)):
+            pass
+        pos = last.end() if last else mk.end(1)
+    content = content[:pos] + new_html + content[pos:]
+    path.write_text(content, encoding="utf-8")
+    return True
+
+
 def main() -> int:
-    page_html = fetch(PROGRAM_URL)
-    episodes = parse_program_page(page_html)
+    episodes = parse_feed(fetch(FEED_URL))
     if not episodes:
-        print("Uyari: program sayfasından hiç bölüm çıkarılamadı.")
+        print("Uyari: YouTube oynatma listesinden hiç Airport bölümü çıkarılamadı.")
         return 1
+    for ep in episodes:
+        ep["img"] = thumb_url(ep["id"])
+
+    # bir kerelik göç: Habertürk bağlantıları -> YouTube
+    moved = migrate_links(INDEX_HTML, HCARD_BLOCK_RE, HCARD_DATE_RE, episodes)
+    moved += migrate_links(TV_HTML, TV_BLOCK_RE, EXISTING_DATE_RE, episodes)
+    if moved:
+        print(f"{moved} mevcut bölüm kartı YouTube bağlantısına çevrildi.")
 
     known_content = TV_HTML.read_text(encoding="utf-8")
-    existing_ids = set(EXISTING_ID_RE.findall(known_content))
+    existing_dates = {f"{y}.{m}.{d}" for y, m, d in EXISTING_DATE_RE.findall(known_content)}
 
-    new_episodes = [e for e in episodes if e["id"] not in existing_ids]
+    new_episodes = [e for e in episodes if e["date"] not in existing_dates]
     if not new_episodes:
         date_matches = EXISTING_DATE_RE.findall(known_content)
         if not date_matches:
@@ -214,29 +274,22 @@ def main() -> int:
         age_days = (date.today() - newest).days
         if age_days > STALE_AFTER_DAYS:
             print(f"Hata: sitedeki en yeni Airport bölümü {age_days} gündür güncellenmedi "
-                  f"(son bilinen bölüm: {newest.isoformat()}). tv.haberturk.com'daki program "
-                  f"sayfası ({PROGRAM_URL}) tarandı ama hiç yeni bölüm bulunamadı - sayfa yapısı "
-                  "değişmiş olabilir, kontrol gerekiyor.")
+                  f"(son bilinen bölüm: {newest.isoformat()}). YouTube oynatma listesi "
+                  f"({PLAYLIST_URL}) tarandı ama hiç yeni bölüm bulunamadı - liste ya da "
+                  "başlık biçimi değişmiş olabilir, kontrol gerekiyor.")
             return 1
         print(f"Zaten güncel, yeni Airport bölümü yok (son bölüm {age_days} gün önce, "
               f"eşik {STALE_AFTER_DAYS} gün).")
         return 0
 
-    # en eskisinden en yenisine dogru eklemek, iki dosyada da en basa
-    # dogru sirada (en yeni en ustte) yerlesmesini saglar
-    new_episodes.sort(key=lambda e: e["date"])
-
-    hcard_html = ""
-    tv_html = ""
+    new_episodes.sort(key=lambda e: e["date"])   # eskiden yeniye; her biri kendi sırasına girer
     for ep in new_episodes:
-        desc = episode_desc(ep)
-        hcard_html = build_hcard(ep) + hcard_html
-        tv_html = build_tv_ep(ep, desc) + tv_html
-
-    ok_home = prepend_block(INDEX_HTML, HCARD_ROW_RE, hcard_html)
-    ok_tv = prepend_block(TV_HTML, TV_LIST_RE, tv_html)
-    if not (ok_home and ok_tv):
-        return 1
+        ok_home = insert_sorted(INDEX_HTML, HCARD_BLOCK_RE, HCARD_DATE_RE, HCARD_ROW_RE,
+                                build_hcard(ep), ep["date"])
+        ok_tv = insert_sorted(TV_HTML, TV_BLOCK_RE, EXISTING_DATE_RE, TV_LIST_RE,
+                              build_tv_ep(ep, ep["desc"]), ep["date"])
+        if not (ok_home and ok_tv):
+            return 1
 
     print(f"{len(new_episodes)} yeni Airport bölümü eklendi:")
     for e in sorted(new_episodes, key=lambda e: e["date"], reverse=True):

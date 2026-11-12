@@ -2,11 +2,13 @@ name: Airport bölümlerini güncelle
 
 on:
   schedule:
-    # Her pazartesi Türkiye saatiyle 11:00'de (UTC+3, Türkiye DST kullanmıyor -
-    # bu yuzden 08:00 UTC) tv.haberturk.com'daki Airport program sayfasını
-    # kontrol eder (program her Pazar 12:15'te yayınlanıyor). Yeni bölüm
-    # yoksa hiçbir şey değiştirmez.
-    - cron: '0 8 * * 1'
+    # Pazartesi-Perşembe Türkiye saatiyle 11:00'de (UTC+3, Türkiye DST
+    # kullanmıyor - bu yuzden 08:00 UTC) AirportHT YouTube kanalındaki
+    # "Airport" oynatma listesini kontrol eder (program her Pazar 12:15'te
+    # yayınlanıyor, bölüm YouTube'a birkaç saat-gün içinde yükleniyor; tek
+    # bir günde kaçırılırsa sonraki gün yakalanır). Yeni bölüm yoksa hiçbir
+    # şey değiştirmez.
+    - cron: '0 8 * * 1-4'
   workflow_dispatch: {}
 
 permissions:
@@ -36,5 +38,5 @@ jobs:
           git config user.name "airport-episodes-bot"
           git config user.email "actions@users.noreply.github.com"
           git add main-site/index.html main-site/televizyon/index.html
-          git commit -m "Airport bölümlerini otomatik güncelle (tv.haberturk.com)"
+          git commit -m "Airport bölümlerini otomatik güncelle (YouTube)"
           git push
