@@ -216,7 +216,18 @@ def extract_sections(article_html: str, title: str):
     pending_img = None
     for m in BODY_TOKEN_RE.finditer(article_body(article_html)):
         if m.group("imgtag"):
-            pending_img = image_url_from_tag(m.group("imgtag")) or None
+            img_url = image_url_from_tag(m.group("imgtag")) or None
+            cur = sections[-1]
+            # Fotoğraf iki yerde durabilir: başlığın hemen ÜSTÜNDE (önceki
+            # paragrafların sonunda) ya da başlığın hemen ALTINDA (henüz
+            # paragraf yok). Altındaysa o başlığa, değilse sıradaki başlığa
+            # aittir (19 Kas 2026: "Sabiha Gökçen'e yerli ve yabancı ilgisi"
+            # fotoğrafı başlığın altındaydı, konu düşmüştü).
+            if cur.get("level", 0) > 0 and not cur["paras"] and not cur.get("image") and img_url:
+                cur["image"] = img_url
+                pending_img = None
+            else:
+                pending_img = img_url
         elif m.group("head") is not None:
             heading = strip_tags(m.group("head"))
             # Habertürk vurgulu alinti cumlelerini de ayni baslik
@@ -324,10 +335,29 @@ def analyze_article(page_html: str, art: dict, main_image: bool = True) -> dict:
         # konu başlıkları ve yazıdan kısa özetleri gösterilir, bölüm
         # (alt) başlıkları tekrar kullanılmaz.
         levels = {sec.get("level") for sec in sections[1:]}
-        by_level = {2, 3} <= levels
+        # h2 başlık varsa konudur (h3 = o konunun bölümü ya da yalnız h2'ler
+        # ayrı konulardır). Yalnız h3 varsa yazı tek konudur; ancak en az 2
+        # fotoğraflı başlık varsa (her konunun fotoğrafı olan çok konulu
+        # yazı) fotoğraflılar konu sayılır. Tek bir başıboş fotoğraf yazıyı
+        # çok konulu yapmaz (19 Kas 2026).
+        has_h2 = 2 in levels
+        has_h3 = 3 in levels
+        n_h2 = sum(1 for sec in sections[1:] if sec.get("level") == 2)
+        photo_count = sum(1 for sec in sections[1:] if sec.get("image"))
+        # h2 + h3 birlikte: h2 = konu, h3 = bölüm. Yalnız h2: en çok 4 başlık
+        # ve en az 1 fotoğraf varsa ayrı konular; fazlası tek konunun alt
+        # başlıkları. Yalnız h3: tek konu (fotoğraf konu yapmaz), ancak en
+        # az 2 fotoğraflı başlık varsa fotoğraflılar konudur.
         rows = []
         for idx, sec in enumerate(sections):
-            is_topic = idx > 0 and ((sec.get("level") == 2) if by_level else bool(sec.get("image")))
+            if idx == 0:
+                is_topic = False
+            elif has_h2 and has_h3:
+                is_topic = sec.get("level") == 2
+            elif has_h2:
+                is_topic = n_h2 <= 4 and photo_count >= 1
+            else:
+                is_topic = photo_count >= 2 and bool(sec.get("image"))
             rows.append((idx, sec, is_topic))
         multi = any(is_topic for _, _, is_topic in rows)
         for idx, sec, is_topic in rows:
